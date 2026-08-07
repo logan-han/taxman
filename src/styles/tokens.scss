@@ -1,0 +1,102 @@
+// Design system tokens. Light theme only - the design system defines no dark mode.
+
+@font-face {
+  font-family: 'Europa';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../assets/fonts/europa-light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Europa';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../assets/fonts/europa-light-italic.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Europa';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/europa-regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Europa';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/europa-regular-italic.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Europa';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/europa-bold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Europa';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/europa-bold-italic.otf') format('opentype');
+}
+
+:root {
+  // Primary blue
+  --pay-primary-light: #6e93e2;
+  --pay-primary-main: #3866b0;
+  --pay-primary-dark: #003c80;
+  --pay-primary-8p: #f3f6fd;
+  --pay-primary-12p: #eef2fc;
+  --pay-primary-20p: #e2e9f9;
+  --pay-primary-30p: #d3dff6;
+
+  // Secondary - deep navy
+  --pay-secondary-main: #00375f;
+  --pay-secondary-dark: #001135;
+  --pay-secondary-12p: #e8ecf1;
+
+  // Semantic
+  --pay-error-main: #d03643;
+  --pay-warning-main: #ffa117;
+  --pay-warning-12p: #fff4e3;
+  --pay-warning-dark: #9c5e09;
+  --pay-info-main: #3a81f4;
+  --pay-info-dark: #285aaa;
+  --pay-info-12p: #e7f0fe;
+  --pay-success-main: #30d891;
+  --pay-bonus-main: #00acc1;
+
+  // Text
+  --pay-text-primary: #283e48;
+  --pay-text-secondary: #526973;
+  --pay-text-disabled: #bdbdbd;
+
+  // Surfaces
+  --pay-bg-main: #f6f8fa;
+  --pay-bg-paper: #ffffff;
+  --pay-bg-light: #f5f5f5;
+  --pay-bg-selected: #f3f6fd;
+
+  // Borders
+  --pay-border-default: #c4c4c4;
+  --pay-divider: #e0e0e0;
+  --pay-card-border: #d0d7de;
+
+  // Fills
+  --pay-fill-grey: #f4f4f5;
+  --pay-fill-blue: #f0f6ff;
+
+  // Type
+  --pay-font: 'Europa', 'Arial', sans-serif;
+
+  // Space / radius / shadow / motion
+  --pay-radius-sm: 4px;
+  --pay-radius-md: 6px;
+  --pay-radius-full: 999px;
+  --pay-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --pay-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pay-duration-short: 150ms;
+}

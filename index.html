@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taxman – Australian Pay Calculator | Take-home pay, tax, HECS & super</title>
+    <meta
+      name="description"
+      content="Free, ad-free Australian pay calculator. Work out your take-home pay, income tax, Medicare levy, HELP/HECS repayment and superannuation for 2026-27, 2025-26 and 2024-25 – every figure linked to its ATO source, calculated in your browser."
+    />
+    <meta name="theme-color" content="#00375f" />
+    <link rel="canonical" href="https://tax.han.life/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tax.han.life/" />
+    <meta property="og:title" content="Taxman – Australian Pay Calculator" />
+    <meta
+      property="og:description"
+      content="Ad-free take-home pay, tax, HECS and super calculator with every figure sourced from the ATO."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Taxman – Australian Pay Calculator",
+        "url": "https://tax.han.life/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "AUD" },
+        "description": "Free, open-source Australian pay calculator: take-home pay, income tax, Medicare levy, HELP/HECS repayments and superannuation, with every rate traceable to its ATO source."
+      }
+    </script>
+    <noscript>
+      <style>
+        #root::before {
+          content: 'Taxman is a browser-based calculator and needs JavaScript to run. Nothing you type ever leaves your device.';
+          display: block;
+          font-family: system-ui, sans-serif;
+          max-width: 40rem;
+          margin: 4rem auto;
+          padding: 0 1rem;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,853 @@
+// Taxman UI.
+// Cards: white, 1px #efefef border, 6px radius, 0 0 16px rgba(0,0,0,.08).
+// Type: Europa (300/400/700 only). Light theme only, per the design system.
+
+@use './tokens.scss';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--pay-bg-main);
+  color: var(--pay-text-primary);
+  font-family: var(--pay-font);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--pay-primary-main);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--pay-primary-dark);
+    text-decoration: underline;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--pay-primary-main);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+// ---------- shared primitives ----------
+
+.overline {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--pay-text-secondary);
+}
+
+.caption {
+  font-size: 12px;
+  line-height: 1.66;
+  letter-spacing: 0.4px;
+  color: var(--pay-text-secondary);
+}
+
+.card {
+  background: var(--pay-bg-paper);
+  border: 1px solid var(--pay-card-border);
+  border-radius: var(--pay-radius-md);
+  box-shadow: var(--pay-card-shadow);
+  padding: 32px;
+
+  @media (max-width: 600px) {
+    padding: 20px;
+  }
+}
+
+.ato-link {
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+// MUI-style outlined field with a notched label
+.field {
+  position: relative;
+  display: block;
+
+  > .field__label {
+    position: absolute;
+    top: -8px;
+    left: 10px;
+    padding: 0 4px;
+    background: var(--pay-bg-paper);
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--pay-text-secondary);
+    z-index: 1;
+  }
+
+  input,
+  select {
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--pay-text-primary);
+    background: var(--pay-bg-paper);
+    border: 1px solid var(--pay-border-default);
+    border-radius: var(--pay-radius-sm);
+    transition: border-color var(--pay-duration-short) var(--pay-ease);
+
+    &:hover {
+      border-color: var(--pay-text-primary);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--pay-primary-main);
+      box-shadow: inset 0 0 0 1px var(--pay-primary-main);
+    }
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23526973' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  &__helper {
+    display: block;
+    margin: 4px 2px 0;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--pay-text-secondary);
+  }
+}
+
+// MUI-style switch row: label left, control right
+.switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+
+  small {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--pay-text-secondary);
+  }
+
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &__track {
+    flex-shrink: 0;
+    width: 40px;
+    height: 24px;
+    border-radius: var(--pay-radius-full);
+    background: var(--pay-border-default);
+    position: relative;
+    transition: background var(--pay-duration-short) var(--pay-ease);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform var(--pay-duration-short) var(--pay-ease);
+    }
+  }
+
+  input:checked + .switch__track {
+    background: var(--pay-primary-main);
+
+    &::after {
+      transform: translateX(16px);
+    }
+  }
+
+  input:focus-visible + .switch__track {
+    outline: 2px solid var(--pay-primary-main);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__track,
+    &__track::after {
+      transition: none;
+    }
+  }
+}
+
+// joined toggle-button group (view switcher)
+.toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--pay-border-default);
+  border-radius: var(--pay-radius-sm);
+  overflow: hidden;
+
+  button {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    background: var(--pay-bg-paper);
+    border: none;
+    border-left: 1px solid var(--pay-border-default);
+    color: var(--pay-text-secondary);
+    cursor: pointer;
+
+    &:first-child {
+      border-left: none;
+    }
+
+    &:hover {
+      background: var(--pay-bg-light);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--pay-primary-12p);
+      color: var(--pay-primary-dark);
+      font-weight: 700;
+    }
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--pay-radius-full);
+  background: var(--pay-fill-grey);
+  color: var(--pay-text-primary);
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+
+  &--info {
+    background: var(--pay-info-12p);
+    color: var(--pay-info-dark);
+  }
+}
+
+// FY chip that is actually a select
+.chip-select {
+  position: relative;
+  display: inline-flex;
+
+  select {
+    appearance: none;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    height: 24px;
+    padding: 0 26px 0 10px;
+    border: none;
+    border-radius: var(--pay-radius-full);
+    background: var(--pay-info-12p)
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23285AAA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+      no-repeat right 10px center;
+    color: var(--pay-info-dark);
+    cursor: pointer;
+  }
+}
+
+// ---------- page ----------
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px 64px;
+
+  @media (max-width: 600px) {
+    padding: 24px 16px 48px;
+  }
+}
+
+.frame {
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+
+  &__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+    color: var(--pay-secondary-main);
+  }
+
+  &__tag {
+    margin: 0;
+    font-size: 14px;
+    color: var(--pay-text-secondary);
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+    text-align: right;
+
+    @media (max-width: 600px) {
+      align-items: flex-start;
+      text-align: left;
+    }
+  }
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+// ---------- inputs card ----------
+
+.inputs {
+  flex: 0 1 340px;
+  min-width: 300px;
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (max-width: 760px) {
+    position: static;
+    flex-basis: 100%;
+  }
+
+  &__divider {
+    height: 1px;
+    background: var(--pay-card-border);
+  }
+
+  &__switches {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__more {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__aux {
+    display: flex;
+    gap: 12px;
+
+    .field {
+      flex: 1;
+    }
+  }
+
+  &__reset {
+    align-self: flex-start;
+    font: inherit;
+    font-size: 13px;
+    color: var(--pay-primary-main);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--pay-primary-dark);
+      text-decoration: underline;
+    }
+  }
+}
+
+.results {
+  flex: 1 1 480px;
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  @media (max-width: 600px) {
+    min-width: 0;
+  }
+}
+
+// ---------- hero card ----------
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__amount-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  &__amount {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.3px;
+    color: var(--pay-secondary-main);
+
+    @media (max-width: 600px) {
+      font-size: 34px;
+    }
+  }
+
+  &__period {
+    font-size: 16px;
+    color: var(--pay-text-secondary);
+  }
+
+  &__caption {
+    font-size: 14px;
+    color: var(--pay-text-secondary);
+  }
+
+  &__viz {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--pay-card-border);
+
+    span {
+      transition: width 200ms var(--pay-ease);
+
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+      }
+    }
+  }
+
+  &__legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    span {
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+    }
+
+    b {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-primary);
+    }
+  }
+}
+
+// ---------- tables (where it goes / brackets / payslip) ----------
+
+.tbl {
+  display: flex;
+  flex-direction: column;
+
+  &__head,
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 110px 120px;
+    gap: 16px;
+    align-items: baseline;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr 84px 92px;
+      gap: 8px;
+    }
+  }
+
+  &__head {
+    padding-bottom: 12px;
+
+    span {
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+      text-align: right;
+
+      &:first-child {
+        text-align: left;
+      }
+    }
+  }
+
+  &__row {
+    padding: 12px 0;
+    border-top: 1px solid var(--pay-card-border);
+    font-size: 14px;
+
+    > span {
+      text-align: right;
+    }
+
+    > span:first-child {
+      text-align: left;
+    }
+
+    small {
+      display: block;
+      font-size: 12px;
+      line-height: 1.66;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+    }
+  }
+
+  &__row--minus > span:not(:first-child) {
+    color: var(--pay-error-main);
+  }
+
+  &__row--total {
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: 700;
+
+    > span:not(:first-child) {
+      color: var(--pay-secondary-main);
+    }
+  }
+
+  &__row--muted,
+  &__row--muted > span:not(:first-child) {
+    color: var(--pay-text-secondary);
+  }
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  &__chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.brackets {
+  &__head,
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 90px 120px;
+    gap: 16px;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr 64px 92px;
+      gap: 8px;
+    }
+  }
+
+  &__head {
+    padding: 8px 0;
+
+    span {
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+      text-align: right;
+
+      &:first-child {
+        text-align: left;
+      }
+    }
+  }
+
+  &__row {
+    padding: 10px 0;
+    border-top: 1px solid var(--pay-card-border);
+    font-size: 14px;
+
+    span {
+      text-align: right;
+    }
+
+    span:first-child {
+      text-align: left;
+    }
+
+    &--inactive {
+      color: var(--pay-text-disabled);
+    }
+  }
+
+  &__note {
+    margin: 16px 0 0;
+  }
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.note--warn {
+  font-size: 12px;
+  line-height: 1.66;
+  letter-spacing: 0.4px;
+  color: var(--pay-warning-dark);
+  background: var(--pay-warning-12p);
+  border-radius: var(--pay-radius-sm);
+  padding: 8px 12px;
+}
+
+.disclaimer {
+  margin: 0;
+}
+
+// ---------- contract vs permanent ----------
+
+.mode-toggle {
+  align-self: flex-start;
+}
+
+// ---------- mortgage ----------
+
+.stat-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  b {
+    font-size: 16px;
+    color: var(--pay-secondary-main);
+  }
+}
+
+.chart {
+  position: relative;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  &__tick {
+    font-family: var(--pay-font);
+    font-size: 11px;
+    fill: var(--pay-text-secondary);
+  }
+
+  &__tooltip {
+    position: absolute;
+    top: 8px;
+    transform: translateX(8px);
+    background: var(--pay-bg-paper);
+    border: 1px solid var(--pay-card-border);
+    border-radius: var(--pay-radius-sm);
+    box-shadow: var(--pay-card-shadow);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 2;
+
+    i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    b {
+      color: var(--pay-text-primary);
+    }
+
+    span {
+      color: var(--pay-text-secondary);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  &__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--pay-text-secondary);
+
+    i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+  }
+}
+
+.forecast {
+  margin-top: 16px;
+  border-top: 1px solid var(--pay-card-border);
+  padding-top: 14px;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+    padding: 6px 0;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 700;
+    padding-bottom: 6px;
+  }
+
+  &__slider {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    input[type='range'] {
+      accent-color: var(--pay-primary-main);
+      width: 100%;
+    }
+  }
+}
+
+.hero__amount--compare {
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.2;
+}
+
+.compare {
+  &__sides {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__side-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+
+    b {
+      font-size: 16px;
+      color: var(--pay-secondary-main);
+    }
+  }
+
+  &__bar {
+    height: 8px;
+  }
+}

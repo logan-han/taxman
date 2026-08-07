@@ -1,0 +1,16 @@
+node_modules/
+build/
+dist/
+dev-dist/
+coverage/
+playwright-report/
+test-results/
+*.local
+.DS_Store
+
+# audit artefacts from the pre-build research session
+console-errors.log
+.playwright-mcp/
+
+# local research notes, not for the public repo
+RESEARCH.md
