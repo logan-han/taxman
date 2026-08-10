@@ -19,7 +19,9 @@ npm run test:e2e    # Playwright
 npm run build
 ```
 
-TypeScript + React + Vite + SCSS. No backend, no tracking, no external requests at runtime.
+TypeScript + React + Vite + SCSS. No backend: every calculation runs in the browser and none of
+your figures are sent anywhere. The deployed site loads Google Analytics for anonymous page-view
+counts; it is skipped on localhost.
 
 ## Data updates
 

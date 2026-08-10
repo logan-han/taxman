@@ -87,7 +87,7 @@ export default function App() {
           <div className="masthead__meta">
             <span className="caption">Every figure sourced from the ATO</span>
             <span className="caption">
-              Calculated in your browser. Nothing leaves this page ·{' '}
+              Calculated in your browser. Your figures never leave this page ·{' '}
               <a href="https://github.com/logan-han/taxman" rel="noopener">
                 open source
               </a>

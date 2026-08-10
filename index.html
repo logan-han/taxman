@@ -32,6 +32,19 @@
         "description": "Free, open-source Australian pay calculator: take-home pay, income tax, Medicare levy, HELP/HECS repayments and superannuation, with every rate traceable to its ATO source."
       }
     </script>
+    <!-- Google Analytics: page views only, production hosts only, so local dev and e2e runs stay out of the data -->
+    <script>
+      if (location.hostname.endsWith('han.life')) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        gtag('js', new Date());
+        gtag('config', 'G-CVEBFCXFSW');
+        var ga = document.createElement('script');
+        ga.async = true;
+        ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-CVEBFCXFSW';
+        document.head.appendChild(ga);
+      }
+    </script>
     <noscript>
       <style>
         #root::before {
