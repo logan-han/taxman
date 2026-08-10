@@ -3,11 +3,13 @@ import { parseUrlState, serialiseUrlState, DEFAULT_VIEW } from './urlState';
 import { DEFAULT_INPUTS } from '../engine/calculate';
 import { DEFAULT_COMPARE } from '../engine/compare';
 import { defaultMortgage } from '../engine/mortgage';
+import { defaultNovated } from '../engine/novatedLease';
 
 const BASE = {
   mode: 'salary' as const,
   compare: DEFAULT_COMPARE,
   mortgage: defaultMortgage(2026),
+  novated: defaultNovated(new Date()),
 };
 
 describe('URL state', () => {
@@ -69,6 +71,7 @@ describe('URL state', () => {
       view: DEFAULT_VIEW,
       inputs: DEFAULT_INPUTS,
       mortgage: defaultMortgage(2026),
+      novated: defaultNovated(new Date()),
       compare: {
         ...DEFAULT_COMPARE,
         contractRate: 850,
@@ -93,5 +96,48 @@ describe('URL state', () => {
       '2026-27',
     );
     expect(q).toBe('?mode=c');
+  });
+
+  it('novated mode with defaults keeps the URL short', () => {
+    const q = serialiseUrlState(
+      { ...BASE, mode: 'novated', inputs: DEFAULT_INPUTS, fy: '2026-27', view: DEFAULT_VIEW },
+      '2026-27',
+    );
+    expect(q).toBe('?mode=n');
+  });
+
+  it('round-trips novated lease state', () => {
+    const state = {
+      ...BASE,
+      mode: 'novated' as const,
+      fy: '2026-27' as const,
+      view: DEFAULT_VIEW,
+      inputs: DEFAULT_INPUTS,
+      novated: {
+        ...defaultNovated(new Date()),
+        vehicleType: 'ice' as const,
+        carPrice: 55_000,
+        fbtBaseValue: 52_000,
+        amountFinanced: 51_000,
+        financePerFortnight: 512.4,
+        runningPerFortnight: 210.55,
+        termYears: 3,
+        residual: 25_000,
+        residualIncludesGst: true,
+        startYear: 2027,
+        startMonth: 4,
+        lvaPassedOn: false,
+        salary: 145_000,
+        hasStudentLoan: true,
+        privateHospitalCover: true,
+        carLoanRatePercent: 6.5,
+        mortgageRatePercent: 5.5,
+      },
+    };
+    const q = serialiseUrlState(state, '2026-27');
+    expect(q).toContain('mode=n');
+    const parsed = parseUrlState(q, '2026-27');
+    expect(parsed.mode).toBe('novated');
+    expect(parsed.novated).toEqual(state.novated);
   });
 });

@@ -8,6 +8,10 @@ your browser; nothing you type leaves the page.
 - **Contract vs permanent** - day/hourly rate vs salary, adjusted for unpaid leave and holidays
 - **Mortgage** - repayments, fixed/interest-only/split loans, extra repayments, rate and growth
   forecasts, equity projection, stamp duty for all states and territories
+- **Novated lease** - the true cost a quote hides: the implied interest rate solved from the
+  payment/term/residual, GST on the residual payout, the luxury vehicle adjustment, RFBA
+  flow-through to HELP/MLS/Div 293, EV FBT exemption phases (2026 wind-back announcement), and a
+  four-way comparison against cash, a car loan and mortgage redraw (see RESEARCH-NOVATED.md)
 
 ## Develop
 

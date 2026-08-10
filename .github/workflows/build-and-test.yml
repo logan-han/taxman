@@ -122,9 +122,13 @@ jobs:
             --exclude "assets/*" \
             --cache-control "public, max-age=0, must-revalidate"
 
+      # Without this the pages sit in S3 while CloudFront serves the old copy
+      # until the default TTL expires. A wildcard counts as one path towards
+      # CloudFront's 1,000 free invalidations a month and, unlike a fixed list,
+      # also catches registerSW.js, icons and anything the build adds later.
       - name: Invalidate CloudFront (optional)
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && vars.CLOUDFRONT_DISTRIBUTION_ID != ''
         run: |
           aws cloudfront create-invalidation \
             --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths "/index.html" "/manifest.webmanifest" "/sw.js"
+            --paths "/*"

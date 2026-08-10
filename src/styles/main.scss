@@ -851,3 +851,152 @@ a {
     height: 8px;
   }
 }
+
+// ---------- novated lease ----------
+
+.grade--competitive,
+.grade--typical,
+.grade--elevated,
+.grade--high {
+  font-weight: 700;
+}
+
+.grade--competitive {
+  background: color-mix(in srgb, var(--pay-success-main) 14%, white);
+  color: #0c7a52;
+}
+
+.grade--typical {
+  background: var(--pay-info-12p);
+  color: var(--pay-info-dark);
+}
+
+.grade--elevated {
+  background: var(--pay-warning-12p);
+  color: var(--pay-warning-dark);
+}
+
+.grade--high {
+  background: color-mix(in srgb, var(--pay-error-main) 12%, white);
+  color: var(--pay-error-main);
+}
+
+.scen {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+
+  &__head,
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 100px 92px 100px;
+    gap: 12px;
+    align-items: baseline;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr 78px 74px 80px;
+      gap: 6px;
+    }
+  }
+
+  &__head {
+    padding-bottom: 10px;
+
+    span {
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+      text-align: right;
+
+      &:first-child {
+        text-align: left;
+      }
+    }
+  }
+
+  &__row {
+    padding: 10px 0;
+    border-top: 1px solid var(--pay-card-border);
+    font-size: 14px;
+
+    > span {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    > span:first-child {
+      text-align: left;
+    }
+
+    small {
+      display: block;
+      font-size: 12px;
+      line-height: 1.66;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+    }
+  }
+
+  &__row--best {
+    background: var(--pay-primary-8p);
+    border-radius: var(--pay-radius-sm);
+    margin: 0 -8px;
+    padding: 10px 8px;
+
+    > span:last-child {
+      color: var(--pay-primary-dark);
+      font-weight: 700;
+    }
+  }
+}
+
+.verdict {
+  margin: 14px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pay-secondary-main);
+}
+
+.kv {
+  display: flex;
+  flex-direction: column;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: baseline;
+    padding: 12px 0;
+    border-top: 1px solid var(--pay-card-border);
+    font-size: 14px;
+
+    &:first-child {
+      border-top: none;
+      padding-top: 4px;
+    }
+
+    > span:last-child {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    small {
+      display: block;
+      font-size: 12px;
+      line-height: 1.66;
+      letter-spacing: 0.4px;
+      color: var(--pay-text-secondary);
+      max-width: 52ch;
+    }
+  }
+
+  &__row--strong {
+    font-weight: 700;
+
+    > span:last-child {
+      color: var(--pay-secondary-main);
+      font-size: 16px;
+    }
+  }
+}

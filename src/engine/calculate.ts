@@ -17,6 +17,11 @@ export interface CalculatorInputs {
   salarySacrificeSuper: number;
   /** annual other pre-tax deductions (reduces taxable income only) */
   deductions: number;
+  /**
+   * annual reportable fringe benefits amount (grossed-up). Raises STSL
+   * repayment income, MLS income and Div 293 income but never taxable income.
+   */
+  reportableFringeBenefits?: number;
   hasStudentLoan: boolean;
   /** appropriate private hospital cover held all year (MLS not payable) */
   privateHospitalCover: boolean;
@@ -38,6 +43,7 @@ export const DEFAULT_INPUTS: CalculatorInputs = {
   salaryIncludesSuper: false,
   salarySacrificeSuper: 0,
   deductions: 0,
+  reportableFringeBenefits: 0,
   hasStudentLoan: false,
   privateHospitalCover: false,
   hasSpouse: false,
@@ -151,13 +157,14 @@ export function medicareLevyAmount(
 }
 
 /**
- * MLS: tier selection uses income for MLS purposes (here: taxable + reportable
- * super, plus spouse income when applicable); the surcharge itself is levied on
- * the narrower base (taxable income; we carry no fringe benefits input).
+ * MLS: tier selection uses income for MLS purposes (taxable + reportable super
+ * + reportable fringe benefits, plus spouse income when applicable); the
+ * surcharge itself is levied on taxable income + reportable fringe benefits.
  */
 export function medicareSurchargeAmount(args: {
   taxable: number;
   reportableSuper: number;
+  reportableFringeBenefits?: number;
   fy: FYData;
   category: TaxCategory;
   privateHospitalCover: boolean;
@@ -166,7 +173,8 @@ export function medicareSurchargeAmount(args: {
   dependants: number;
 }): { amount: number; tierRate: number; mlsIncome: number } {
   const { taxable, reportableSuper, fy, category } = args;
-  const mlsIncome = taxable + reportableSuper + (args.hasSpouse ? args.spouseIncome : 0);
+  const rfb = Math.max(0, args.reportableFringeBenefits ?? 0);
+  const mlsIncome = taxable + reportableSuper + rfb + (args.hasSpouse ? args.spouseIncome : 0);
   if (category === 'foreign' || category === 'whm' || args.privateHospitalCover) {
     return { amount: 0, tierRate: 0, mlsIncome };
   }
@@ -179,14 +187,14 @@ export function medicareSurchargeAmount(args: {
     const threshold = isFamily ? t.familyFrom + (t.familyFrom > 0 ? uplift : 0) : t.singleFrom;
     if (mlsIncome > threshold) tierRate = t.rate;
   }
-  // Levy base: own taxable income (+ own reportable fringe benefits, not modelled)
-  const amount = tierRate * taxable;
+  // Levy base: own taxable income + own reportable fringe benefits
+  const amount = tierRate * (taxable + rfb);
   return { amount, tierRate, mlsIncome };
 }
 
 /**
  * STSL repayment income: taxable income + reportable super contributions
- * (+ fringe benefits and investment losses, not modelled).
+ * + reportable fringe benefits (+ investment losses, not modelled).
  * Salary sacrifice therefore does NOT reduce the repayment base.
  */
 export function studentLoanRepayment(
@@ -252,6 +260,7 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
 
   const sacrifice = Math.max(0, Math.min(inputs.salarySacrificeSuper, cashSalary));
   const deductions = Math.max(0, inputs.deductions);
+  const reportableFringeBenefits = Math.max(0, inputs.reportableFringeBenefits ?? 0);
   const taxableIncome = Math.max(0, cashSalary - sacrifice - deductions);
 
   const brackets =
@@ -271,6 +280,7 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
   const mls = medicareSurchargeAmount({
     taxable: taxableIncome,
     reportableSuper: sacrifice,
+    reportableFringeBenefits,
     fy,
     category: inputs.category,
     privateHospitalCover: inputs.privateHospitalCover,
@@ -279,13 +289,13 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
     dependants: inputs.dependants,
   });
 
-  const repaymentIncome = taxableIncome + sacrifice;
+  const repaymentIncome = taxableIncome + sacrifice + reportableFringeBenefits;
   const stsl = inputs.hasStudentLoan
     ? studentLoanRepayment(repaymentIncome, fy)
     : { amount: 0 };
 
   const concessionalTotal = superGuarantee + sacrifice;
-  const div293Income = taxableIncome + concessionalTotal;
+  const div293Income = taxableIncome + concessionalTotal + reportableFringeBenefits;
   const div293Excess = Math.max(0, div293Income - fy.div293.threshold);
   const div293Payable =
     div293Excess > 0 ? fy.div293.rate * Math.min(div293Excess, concessionalTotal) : 0;

@@ -6,6 +6,9 @@ import type { AuState, CompareInputs } from '../engine/compare';
 import { AU_STATES, DEFAULT_COMPARE } from '../engine/compare';
 import type { InterestOption, MortgageInputs, RepaymentFrequency } from '../engine/mortgage';
 import { defaultMortgage } from '../engine/mortgage';
+import type { NovatedLeaseInputs } from '../engine/novatedLease';
+import { defaultNovated } from '../engine/novatedLease';
+import type { VehicleType } from '../data/fbt';
 import type { ViewPeriod } from '../components/view';
 
 /**
@@ -20,7 +23,9 @@ const VIEWS: ViewPeriod[] = ['weekly', 'fortnightly', 'monthly', 'annually'];
 
 export const DEFAULT_VIEW: ViewPeriod = 'monthly';
 
-export type Mode = 'salary' | 'compare' | 'mortgage';
+export type Mode = 'salary' | 'compare' | 'mortgage' | 'novated';
+
+const VEHICLE_TYPES: VehicleType[] = ['bev', 'ice'];
 
 const INTEREST_OPTIONS: InterestOption[] = [
   'variable', 'fixed6m', 'fixed1y', 'fixed2y', 'fixed3y', 'fixed5y', 'fixedFull', 'interestOnly',
@@ -32,6 +37,7 @@ export interface UrlState {
   inputs: CalculatorInputs;
   compare: CompareInputs;
   mortgage: MortgageInputs;
+  novated: NovatedLeaseInputs;
   fy: FinancialYear;
   view: ViewPeriod;
 }
@@ -57,8 +63,42 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
   const opt = (v: string | null, fallback: InterestOption): InterestOption =>
     INTEREST_OPTIONS.includes(v as InterestOption) ? (v as InterestOption) : fallback;
 
+  const dn = defaultNovated(new Date());
+
   return {
-    mode: p.get('mode') === 'c' ? 'compare' : p.get('mode') === 'm' ? 'mortgage' : 'salary',
+    mode:
+      p.get('mode') === 'c'
+        ? 'compare'
+        : p.get('mode') === 'm'
+          ? 'mortgage'
+          : p.get('mode') === 'n'
+            ? 'novated'
+            : 'salary',
+    novated: {
+      // legacy URLs may carry nvt=phev: treat as petrol (exemption ended Apr 2025)
+      vehicleType:
+        p.get('nvt') === 'phev'
+          ? 'ice'
+          : VEHICLE_TYPES.includes(p.get('nvt') as VehicleType)
+            ? (p.get('nvt') as VehicleType)
+            : dn.vehicleType,
+      carPrice: num(p.get('np'), dn.carPrice),
+      fbtBaseValue: num(p.get('nbv'), dn.fbtBaseValue),
+      amountFinanced: num(p.get('naf'), dn.amountFinanced),
+      financePerFortnight: num(p.get('npf'), dn.financePerFortnight),
+      runningPerFortnight: num(p.get('nrc'), dn.runningPerFortnight),
+      termYears: num(p.get('ntm'), dn.termYears, 5),
+      residual: num(p.get('nrv'), dn.residual),
+      residualIncludesGst: p.get('nrvg') === '1',
+      startYear: num(p.get('nsy'), dn.startYear, 2100),
+      startMonth: num(p.get('nsm'), dn.startMonth, 12),
+      lvaPassedOn: p.get('nlva') !== '0',
+      salary: num(p.get('ns'), dn.salary),
+      hasStudentLoan: p.get('nsl') === '1',
+      privateHospitalCover: p.get('nphc') === '1',
+      carLoanRatePercent: num(p.get('nclr'), dn.carLoanRatePercent, 30),
+      mortgageRatePercent: num(p.get('nmr'), dn.mortgageRatePercent, 25),
+    },
     mortgage: {
       dutyState: AU_STATES.includes(p.get('mst') as AuState)
         ? (p.get('mst') as AuState)
@@ -133,6 +173,8 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
       salaryIncludesSuper: p.get('inc') === '1',
       salarySacrificeSuper: num(p.get('ss'), d.salarySacrificeSuper),
       deductions: num(p.get('ded'), d.deductions),
+      // engine-only input (set by the novated mode), never URL-driven here
+      reportableFringeBenefits: d.reportableFringeBenefits,
       hasStudentLoan: p.get('sl') === '1',
       privateHospitalCover: p.get('phc') === '1',
       hasSpouse: p.get('sp') === '1',
@@ -145,10 +187,38 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
 
 export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): string {
   const p = new URLSearchParams();
-  const { inputs: i, fy, compare: c, mortgage: m } = state;
+  const { inputs: i, fy, compare: c, mortgage: m, novated: n } = state;
   const d = DEFAULT_INPUTS;
   const dc = DEFAULT_COMPARE;
   const dm = defaultMortgage(m.startYear && !m.existing ? m.startYear : new Date().getFullYear());
+
+  if (state.mode === 'novated') {
+    const dn = defaultNovated(new Date());
+    p.set('mode', 'n');
+    if (n.vehicleType !== dn.vehicleType) p.set('nvt', n.vehicleType);
+    if (n.carPrice !== dn.carPrice) p.set('np', String(n.carPrice));
+    if (n.fbtBaseValue > 0) p.set('nbv', String(n.fbtBaseValue));
+    if (n.amountFinanced > 0) p.set('naf', String(n.amountFinanced));
+    if (n.financePerFortnight !== dn.financePerFortnight)
+      p.set('npf', String(n.financePerFortnight));
+    if (n.runningPerFortnight !== dn.runningPerFortnight)
+      p.set('nrc', String(n.runningPerFortnight));
+    if (n.termYears !== dn.termYears) p.set('ntm', String(n.termYears));
+    if (n.residual !== dn.residual) p.set('nrv', String(n.residual));
+    if (n.residualIncludesGst) p.set('nrvg', '1');
+    if (n.startYear !== dn.startYear) p.set('nsy', String(n.startYear));
+    if (n.startMonth !== dn.startMonth) p.set('nsm', String(n.startMonth));
+    if (!n.lvaPassedOn) p.set('nlva', '0');
+    if (n.salary !== dn.salary) p.set('ns', String(n.salary));
+    if (n.hasStudentLoan) p.set('nsl', '1');
+    if (n.privateHospitalCover) p.set('nphc', '1');
+    if (n.carLoanRatePercent !== dn.carLoanRatePercent) p.set('nclr', String(n.carLoanRatePercent));
+    if (n.mortgageRatePercent !== dn.mortgageRatePercent)
+      p.set('nmr', String(n.mortgageRatePercent));
+    if (fy !== defaultFy) p.set('fy', fy);
+    const nq = p.toString();
+    return nq ? `?${nq}` : '';
+  }
 
   if (state.mode === 'mortgage') {
     p.set('mode', 'm');

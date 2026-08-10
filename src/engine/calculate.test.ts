@@ -270,3 +270,68 @@ describe('end-to-end (golden fixture: $100k, FY2026-27)', () => {
     expect(hourly.grossSalary).toBeCloseTo(50 * 38 * 52, 2);
   });
 });
+
+describe('reportable fringe benefits (novated lease support)', () => {
+  const rfb = { ...DEFAULT_INPUTS, reportableFringeBenefits: 34_120 };
+
+  it('never changes taxable income or income tax', () => {
+    const base = calculate(DEFAULT_INPUTS, fy27);
+    const withRfb = calculate(rfb, fy27);
+    expect(withRfb.taxableIncome).toBe(base.taxableIncome);
+    expect(withRfb.netIncomeTax).toBeCloseTo(base.netIncomeTax, 2);
+  });
+
+  it('raises STSL repayment income (golden trap: an exempt-EV lease can INCREASE HELP)', () => {
+    // Maxxia fixture: $100k salary, $27,945 pre-tax package, RFBA $34,120
+    const base = calculate({ ...DEFAULT_INPUTS, hasStudentLoan: true }, fy27);
+    const lease = calculate(
+      {
+        ...DEFAULT_INPUTS,
+        hasStudentLoan: true,
+        deductions: 27_945,
+        reportableFringeBenefits: 34_120,
+      },
+      fy27,
+    );
+    expect(Math.round(base.studentLoanRepayment)).toBe(4_571);
+    // repayment income 100,000 - 27,945 + 34,120 = 106,175 -> 15% over 69,528
+    expect(Math.round(lease.studentLoanRepayment)).toBe(5_497);
+    expect(lease.studentLoanRepayment).toBeGreaterThan(base.studentLoanRepayment);
+  });
+
+  it('raises MLS income and the surcharge is levied on taxable + RFB', () => {
+    // taxable 72,055 after the package, + RFBA 34,120 = 106,175 -> tier 1 (over 105,000)
+    const r = calculate(
+      { ...DEFAULT_INPUTS, deductions: 27_945, reportableFringeBenefits: 34_120 },
+      fy27,
+    );
+    expect(r.mlsTierRate).toBe(0.01);
+    expect(r.medicareSurcharge).toBeCloseTo(0.01 * (72_055 + 34_120), 2);
+    const covered = calculate(
+      {
+        ...DEFAULT_INPUTS,
+        deductions: 27_945,
+        reportableFringeBenefits: 34_120,
+        privateHospitalCover: true,
+      },
+      fy27,
+    );
+    expect(covered.medicareSurcharge).toBe(0);
+  });
+
+  it('raises Div 293 income', () => {
+    const r = calculate({ ...DEFAULT_INPUTS, salary: 220_000, reportableFringeBenefits: 34_120 }, fy27);
+    // 220,000 + SG 26,400 + 34,120 = 280,520 over the 250k threshold
+    expect(r.div293Income).toBeCloseTo(280_520, 2);
+    expect(r.div293Payable).toBeGreaterThan(0);
+  });
+
+  it('does not change take-home directly (RFB is not cash salary)', () => {
+    const base = calculate({ ...DEFAULT_INPUTS, privateHospitalCover: true }, fy27);
+    const withRfb = calculate(
+      { ...DEFAULT_INPUTS, privateHospitalCover: true, reportableFringeBenefits: 10_000 },
+      fy27,
+    );
+    expect(withRfb.takeHome).toBeCloseTo(base.takeHome, 2);
+  });
+});

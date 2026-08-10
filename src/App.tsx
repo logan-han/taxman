@@ -7,8 +7,12 @@ import { compareContractPermanent, DEFAULT_COMPARE } from './engine/compare';
 import type { CompareInputs } from './engine/compare';
 import { calculateMortgage, defaultMortgage } from './engine/mortgage';
 import type { MortgageInputs } from './engine/mortgage';
+import { calculateNovatedLease, defaultNovated } from './engine/novatedLease';
+import type { NovatedLeaseInputs } from './engine/novatedLease';
 import { MortgageInputsPanel } from './components/MortgageInputs';
 import { MortgageResults } from './components/MortgageResults';
+import { NovatedInputsPanel } from './components/NovatedLeaseInputs';
+import { NovatedLeaseResults } from './components/NovatedLeaseResults';
 import { parseUrlState, syncUrl, DEFAULT_VIEW } from './state/urlState';
 import type { Mode } from './state/urlState';
 import { InputsPanel } from './components/InputsPanel';
@@ -24,13 +28,13 @@ import type { ViewPeriod } from './components/view';
 const DEFAULT_FY = currentFinancialYear();
 
 export default function App() {
-  const [{ mode, inputs, compare, mortgage, fy, view }, setState] = useState(() =>
+  const [{ mode, inputs, compare, mortgage, novated, fy, view }, setState] = useState(() =>
     parseUrlState(window.location.search, DEFAULT_FY),
   );
 
   useEffect(() => {
-    syncUrl({ mode, inputs, compare, mortgage, fy, view }, DEFAULT_FY);
-  }, [mode, inputs, compare, mortgage, fy, view]);
+    syncUrl({ mode, inputs, compare, mortgage, novated, fy, view }, DEFAULT_FY);
+  }, [mode, inputs, compare, mortgage, novated, fy, view]);
 
   const fyData = FY_DATA[fy];
   const result = useMemo(() => calculate(inputs, fyData), [inputs, fyData]);
@@ -39,6 +43,7 @@ export default function App() {
     [compare, fyData],
   );
   const mortgageResult = useMemo(() => calculateMortgage(mortgage), [mortgage]);
+  const novatedResult = useMemo(() => calculateNovatedLease(novated, fyData), [novated, fyData]);
 
   const setInputs = (patch: Partial<CalculatorInputs>) =>
     setState((s) => ({ ...s, inputs: { ...s.inputs, ...patch } }));
@@ -46,6 +51,8 @@ export default function App() {
     setState((s) => ({ ...s, compare: { ...s.compare, ...patch } }));
   const setMortgage = (patch: Partial<MortgageInputs>) =>
     setState((s) => ({ ...s, mortgage: { ...s.mortgage, ...patch } }));
+  const setNovated = (patch: Partial<NovatedLeaseInputs>) =>
+    setState((s) => ({ ...s, novated: { ...s.novated, ...patch } }));
   const setFy = (next: FinancialYear) => setState((s) => ({ ...s, fy: next }));
   const setView = (next: ViewPeriod) => setState((s) => ({ ...s, view: next }));
   const setMode = (next: Mode) => setState((s) => ({ ...s, mode: next }));
@@ -55,6 +62,7 @@ export default function App() {
       inputs: DEFAULT_INPUTS,
       compare: DEFAULT_COMPARE,
       mortgage: defaultMortgage(new Date().getFullYear()),
+      novated: defaultNovated(new Date()),
       fy: DEFAULT_FY,
       view: DEFAULT_VIEW,
     }));
@@ -81,11 +89,10 @@ export default function App() {
               </span>
             </div>
             <p className="masthead__tag">
-              Take-home pay, tax, HELP and super for Australian salaries
+              Australian calculators for pay, tax, mortgages and novated leases
             </p>
           </div>
           <div className="masthead__meta">
-            <span className="caption">Every figure sourced from the ATO</span>
             <span className="caption">
               Calculated in your browser. Your figures never leave this page ·{' '}
               <a href="https://github.com/logan-han/taxman" rel="noopener">
@@ -102,13 +109,21 @@ export default function App() {
               { label: 'My salary', value: 'salary' as Mode },
               { label: 'Contract vs permanent', value: 'compare' as Mode },
               { label: 'Mortgage', value: 'mortgage' as Mode },
+              { label: 'Novated lease', value: 'novated' as Mode },
             ]}
             value={mode}
             onChange={setMode}
           />
         </div>
 
-        {mode === 'mortgage' ? (
+        {mode === 'novated' ? (
+          <div className="layout">
+            <NovatedInputsPanel n={novated} fy={fy} onChange={setNovated} onReset={reset} />
+            <div className="results">
+              <NovatedLeaseResults n={novated} result={novatedResult} fyData={fyData} />
+            </div>
+          </div>
+        ) : mode === 'mortgage' ? (
           <div className="layout">
             <MortgageInputsPanel m={mortgage} onChange={setMortgage} onReset={reset} />
             <div className="results">

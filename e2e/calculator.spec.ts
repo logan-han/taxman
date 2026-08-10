@@ -145,6 +145,57 @@ test.describe('mortgage', () => {
   });
 });
 
+test.describe('novated lease', () => {
+  // Default state: $75,000 EV (the announced phase-2 exemption cap) over 5
+  // years at a typical big-provider 12% implied rate with the ATO-minimum
+  // residual. These figures hold while the default commencement stays inside
+  // the exempt phases (the $75k cap keeps the car exempt to March 2029).
+  test('mode toggle exposes the implied APR and lease-to-own total', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Novated lease' }).click();
+    await expect(page).toHaveURL(/mode=n/);
+    await expect(page.getByTestId('novated-apr')).toHaveText('12.00%');
+    await expect(page.getByTestId('novated-interest')).toHaveText('$27,969');
+    await expect(page.getByTestId('lease-total')).toHaveText('$98,547');
+    // exempt EV at $100k: the lease wins comfortably at a fair rate
+    await expect(page.getByTestId('novated-verdict')).toContainText('$24,290 ahead');
+  });
+
+  test('a study loan erodes the advantage via RFBA', async ({ page }) => {
+    await page.goto('/?mode=n');
+    await expect(page.getByTestId('novated-verdict')).toContainText('$24,290 ahead');
+    await page.getByLabel('Study loan').check();
+    await expect(page).toHaveURL(/nsl=1/);
+    // still ahead, but $6.8k worse over the term than without the debt
+    await expect(page.getByTestId('novated-verdict')).toContainText('$17,445 ahead');
+    await expect(page.getByTestId('novated-stsl-delta')).toHaveText('+$1,178/yr');
+  });
+
+  test('a petrol car on the same numbers flips the verdict', async ({ page }) => {
+    await page.goto('/?mode=n&nvt=ice');
+    await expect(page.getByTestId('novated-verdict')).toContainText('Cash beats this lease by $2,710');
+  });
+
+  test('the residual helper fills the ATO minimum for the term', async ({ page }) => {
+    await page.goto('/?mode=n&np=60000&ntm=3');
+    // financed 60,000 - 5,455 GST (under the cap); 3-year floor 46.88%
+    await expect(page.getByTestId('min-residual')).toHaveText('$25,571');
+    await page.getByRole('button', { name: 'use ATO minimum' }).click();
+    await expect(page.getByRole('textbox', { name: 'Residual value' })).toHaveValue('25,571');
+    await expect(page).toHaveURL(/nrv=25571/);
+  });
+
+  test('novated state round-trips through the URL', async ({ page }) => {
+    await page.goto('/?mode=n&np=60000&nrv=20000&ntm=3&nclr=6.5');
+    await expect(page.getByRole('textbox', { name: 'Car price' })).toHaveValue('60,000');
+    await expect(page.getByLabel('Car loan rate')).toHaveValue('6.5');
+    await expect(page.getByTestId('novated-apr')).toBeVisible();
+    // typing a different amount financed lands in the URL
+    await page.getByRole('textbox', { name: 'Amount financed' }).fill('55,000');
+    await expect(page).toHaveURL(/naf=55000/);
+  });
+});
+
 test('stamp duty estimator fills upfront fees', async ({ page }) => {
   await page.goto('/?mode=m');
   // NSW duty on $1,000,000 (FY2026-27): $39,187

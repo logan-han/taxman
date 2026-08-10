@@ -34,8 +34,9 @@ list/put/delete objects in `tax.han.life` and create invalidations on `E5KN3ALIA
 
 The deploy job syncs `build/assets/*` with `public, max-age=31536000, immutable` (Vite
 content-hashes those filenames) and everything else with `public, max-age=0, must-revalidate`,
-then invalidates `/index.html`, `/manifest.webmanifest` and `/sw.js` only — comfortably inside
-CloudFront's 1,000 free invalidation paths per month.
+then invalidates `/*`. The wildcard counts as a single path towards CloudFront's 1,000 free
+invalidation paths per month and also catches un-hashed files a fixed list would miss
+(`registerSW.js`, icons, `robots.txt`).
 
 ## If the repo is renamed
 
