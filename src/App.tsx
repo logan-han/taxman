@@ -97,6 +97,10 @@ export default function App() {
               Calculated in your browser. Your figures never leave this page ·{' '}
               <a href="https://github.com/logan-han/taxman" rel="noopener">
                 open source
+              </a>{' '}
+              ·{' '}
+              <a href="https://coffee.han.life" target="_blank" rel="noopener">
+                ☕ Buy me a coffee
               </a>
             </span>
           </div>
