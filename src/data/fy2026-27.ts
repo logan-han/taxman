@@ -3,11 +3,9 @@ import type { FYData } from './types';
 /**
  * FY 2026-27 (1 July 2026 - 30 June 2027). The current financial year.
  *
- * Resident brackets are DERIVED: the 16% -> 15% cut is law (Treasury Laws
- * Amendment measure confirmed on the ATO new-legislation page) but the ATO
- * resident-rates page had not yet published a 2026-27 table when checked.
- * Bases recomputed from the 15% first rate; cross-checked against ATO Schedule 1
- * withholding coefficients (published 17 June 2026) which already embed the cut.
+ * Resident brackets confirmed against the ATO's published 2026-27 table, which
+ * now carries the legislated 16% -> 15% cut; the bases also match ATO Schedule 1
+ * withholding coefficients (published 17 June 2026).
  *
  * Payday Super starts this year: the max contribution base becomes annual.
  */
@@ -144,13 +142,13 @@ export const fy2026_27: FYData = {
     scale4ForeignRate: 0.45,
   },
 
-  hasDerivedFigures: true,
+  hasDerivedFigures: false,
 
   sources: {
     brackets: {
-      url: 'https://www.ato.gov.au/about-ato/new-legislation/in-detail/individuals/personal-income-tax-new-tax-cuts-for-every-australian-taxpayer',
-      checked: '2026-08-06',
-      note: 'DERIVED: 16% -> 15% from 1 July 2026 is law; bases recomputed. Replace with the ATO table when published.',
+      url: 'https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents',
+      checked: '2026-08-24',
+      note: 'ATO published table: 15c over $18,200, then $4,020 / $31,020 / $51,370.',
     },
     foreign: {
       url: 'https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents',
