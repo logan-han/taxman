@@ -10,7 +10,11 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
-      include: ['src/engine/**', 'src/data/**', 'src/state/**'],
+      reporter: ['text', 'lcov'],
+      // Whole app, so the Codecov number means what it looks like. main.tsx is
+      // the createRoot entry point and assets are binaries.
+      include: ['src/**'],
+      exclude: ['src/main.tsx', 'src/assets/**'],
     },
   },
 });

@@ -1,5 +1,7 @@
 # taxman
 
+[![codecov](https://codecov.io/gh/logan-han/taxman/graph/badge.svg)](https://codecov.io/gh/logan-han/taxman)
+
 Ad-free Australian money calculators at [tax.han.life](https://tax.han.life). Everything runs in
 your browser; nothing you type leaves the page.
 
