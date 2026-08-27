@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { stampDutyFor } from './stampDuty';
 
 describe('stamp duty', () => {
-  it("QLD worked example from QRO: $850,000 investment property -> $31,275", () => {
+  it('QLD worked example from QRO: $850,000 investment property -> $31,275', () => {
     // "$17,325 (for the first $540,000) + $13,950 ($4.50 for every $100 in
     //  $310,000, the balance above $540,000) = $31,275"
     expect(stampDutyFor('QLD', 850_000)).toBe(31_275);

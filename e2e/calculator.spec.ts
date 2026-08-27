@@ -61,9 +61,7 @@ test.describe('taxman calculator', () => {
     await expect(page.getByTestId('super')).toHaveText('+$11,500');
   });
 
-  test('working holiday maker hides Medicare and shows the Schedule 15 note', async ({
-    page,
-  }) => {
+  test('working holiday maker hides Medicare and shows the Schedule 15 note', async ({ page }) => {
     await page.goto('/');
     await page.getByLabel('Tax status').selectOption('whm');
     // WHM on 100k: 6,750 + 30% x 55,000 = 23,250, no levy
@@ -173,7 +171,9 @@ test.describe('novated lease', () => {
 
   test('a petrol car on the same numbers flips the verdict', async ({ page }) => {
     await page.goto('/?mode=n&nvt=ice');
-    await expect(page.getByTestId('novated-verdict')).toContainText('Cash beats this lease by $2,710');
+    await expect(page.getByTestId('novated-verdict')).toContainText(
+      'Cash beats this lease by $2,710',
+    );
   });
 
   test('the residual helper fills the ATO minimum for the term', async ({ page }) => {

@@ -28,7 +28,14 @@ export type Mode = 'salary' | 'compare' | 'mortgage' | 'novated';
 const VEHICLE_TYPES: VehicleType[] = ['bev', 'ice'];
 
 const INTEREST_OPTIONS: InterestOption[] = [
-  'variable', 'fixed6m', 'fixed1y', 'fixed2y', 'fixed3y', 'fixed5y', 'fixedFull', 'interestOnly',
+  'variable',
+  'fixed6m',
+  'fixed1y',
+  'fixed2y',
+  'fixed3y',
+  'fixed5y',
+  'fixedFull',
+  'interestOnly',
 ];
 const MORTGAGE_FREQS: RepaymentFrequency[] = ['monthly', 'fortnightly', 'weekly'];
 
@@ -59,7 +66,9 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
   const view = p.get('v');
   const dc = DEFAULT_COMPARE;
 
-  const dm = defaultMortgage(new Date().getMonth() >= 6 ? new Date().getFullYear() : new Date().getFullYear());
+  const dm = defaultMortgage(
+    new Date().getMonth() >= 6 ? new Date().getFullYear() : new Date().getFullYear(),
+  );
   const opt = (v: string | null, fallback: InterestOption): InterestOption =>
     INTEREST_OPTIONS.includes(v as InterestOption) ? (v as InterestOption) : fallback;
 
@@ -143,9 +152,7 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
       },
     },
     view: VIEWS.includes(view as ViewPeriod) ? (view as ViewPeriod) : DEFAULT_VIEW,
-    fy: FINANCIAL_YEARS.includes(fyParam as FinancialYear)
-      ? (fyParam as FinancialYear)
-      : defaultFy,
+    fy: FINANCIAL_YEARS.includes(fyParam as FinancialYear) ? (fyParam as FinancialYear) : defaultFy,
     compare: {
       state: AU_STATES.includes(p.get('st') as AuState) ? (p.get('st') as AuState) : dc.state,
       publicHolidayDays: num(p.get('ph'), dc.publicHolidayDays, 366),
@@ -248,14 +255,18 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
     if (m.extraPerPeriod > 0) p.set('mxr', String(m.extraPerPeriod));
     const df = dm.rateForecast;
     if (m.rateForecast.nearYear !== df.nearYear) p.set('mrny', String(m.rateForecast.nearYear));
-    if (m.rateForecast.nearPercent !== df.nearPercent) p.set('mrnp', String(m.rateForecast.nearPercent));
+    if (m.rateForecast.nearPercent !== df.nearPercent)
+      p.set('mrnp', String(m.rateForecast.nearPercent));
     if (m.rateForecast.longYear !== df.longYear) p.set('mrly', String(m.rateForecast.longYear));
-    if (m.rateForecast.longPercent !== df.longPercent) p.set('mrlp', String(m.rateForecast.longPercent));
+    if (m.rateForecast.longPercent !== df.longPercent)
+      p.set('mrlp', String(m.rateForecast.longPercent));
     const dg = dm.growthForecast;
     if (m.growthForecast.nearYear !== dg.nearYear) p.set('mgny', String(m.growthForecast.nearYear));
-    if (m.growthForecast.nearPercent !== dg.nearPercent) p.set('mgnp', String(m.growthForecast.nearPercent));
+    if (m.growthForecast.nearPercent !== dg.nearPercent)
+      p.set('mgnp', String(m.growthForecast.nearPercent));
     if (m.growthForecast.longYear !== dg.longYear) p.set('mgly', String(m.growthForecast.longYear));
-    if (m.growthForecast.longPercent !== dg.longPercent) p.set('mglp', String(m.growthForecast.longPercent));
+    if (m.growthForecast.longPercent !== dg.longPercent)
+      p.set('mglp', String(m.growthForecast.longPercent));
     const mq = p.toString();
     return mq ? `?${mq}` : '';
   }

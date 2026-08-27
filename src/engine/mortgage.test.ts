@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  amortisedRepayment,
-  calculateMortgage,
-  defaultMortgage,
-  rateAt,
-} from './mortgage';
+import { amortisedRepayment, calculateMortgage, defaultMortgage, rateAt } from './mortgage';
 import type { MortgageInputs } from './mortgage';
 
 const base = (): MortgageInputs => defaultMortgage(2026);
@@ -46,10 +41,7 @@ describe('mortgage schedule', () => {
 
   it('fortnightly halves the period and pays off in the same term', () => {
     const r = calculateMortgage({ ...base(), frequency: 'fortnightly' });
-    expect(r.initialRepayment).toBeCloseTo(
-      amortisedRepayment(800_000, 6, 30 * 26, 26),
-      1,
-    );
+    expect(r.initialRepayment).toBeCloseTo(amortisedRepayment(800_000, 6, 30 * 26, 26), 1);
     expect(r.payoffYears).toBeCloseTo(30, 1);
   });
 

@@ -111,10 +111,7 @@ describe('Medicare levy', () => {
 
 describe('Medicare levy surcharge', () => {
   it('no surcharge with private hospital cover', () => {
-    const r = calculate(
-      { ...DEFAULT_INPUTS, salary: 150_000, privateHospitalCover: true },
-      fy27,
-    );
+    const r = calculate({ ...DEFAULT_INPUTS, salary: 150_000, privateHospitalCover: true }, fy27);
     expect(r.medicareSurcharge).toBe(0);
   });
 
@@ -320,7 +317,10 @@ describe('reportable fringe benefits (novated lease support)', () => {
   });
 
   it('raises Div 293 income', () => {
-    const r = calculate({ ...DEFAULT_INPUTS, salary: 220_000, reportableFringeBenefits: 34_120 }, fy27);
+    const r = calculate(
+      { ...DEFAULT_INPUTS, salary: 220_000, reportableFringeBenefits: 34_120 },
+      fy27,
+    );
     // 220,000 + SG 26,400 + 34,120 = 280,520 over the 250k threshold
     expect(r.div293Income).toBeCloseTo(280_520, 2);
     expect(r.div293Payable).toBeGreaterThan(0);

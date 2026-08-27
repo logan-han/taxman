@@ -41,9 +41,7 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
 
       <Field
         label="Salary before tax"
-        helper={
-          inputs.salaryIncludesSuper ? 'Package including super' : 'Excluding super'
-        }
+        helper={inputs.salaryIncludesSuper ? 'Package including super' : 'Excluding super'}
       >
         <input
           type="text"
@@ -180,9 +178,7 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
               min="0"
               max="20"
               value={inputs.dependants}
-              onChange={(e) =>
-                onChange({ dependants: Math.max(0, Number(e.target.value) || 0) })
-              }
+              onChange={(e) => onChange({ dependants: Math.max(0, Number(e.target.value) || 0) })}
             />
           </Field>
         </div>

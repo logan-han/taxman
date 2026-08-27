@@ -16,7 +16,11 @@ export function HeroCard({ result: r, view, onViewChange }: Props) {
   const segments = [
     { label: 'Take-home', color: 'var(--pay-primary-main)', value: r.takeHome },
     { label: 'Income tax', color: 'var(--pay-secondary-main)', value: r.netIncomeTax },
-    { label: 'Medicare', color: 'var(--pay-info-main)', value: r.medicareLevy + r.medicareSurcharge },
+    {
+      label: 'Medicare',
+      color: 'var(--pay-info-main)',
+      value: r.medicareLevy + r.medicareSurcharge,
+    },
     { label: 'Study loan', color: 'var(--pay-warning-main)', value: r.studentLoanRepayment },
     { label: 'Super sacrifice', color: 'var(--pay-bonus-main)', value: r.salarySacrificeSuper },
   ].filter((s) => s.value > 0);

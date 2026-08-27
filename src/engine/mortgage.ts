@@ -95,8 +95,18 @@ export function defaultMortgage(currentYear: number): MortgageInputs {
     ],
     split: false,
     extraPerPeriod: 0,
-    rateForecast: { nearYear: currentYear + 3, nearPercent: 6.0, longYear: currentYear + 13, longPercent: 6.0 },
-    growthForecast: { nearYear: currentYear + 8, nearPercent: 4.0, longYear: currentYear + 17, longPercent: 4.0 },
+    rateForecast: {
+      nearYear: currentYear + 3,
+      nearPercent: 6.0,
+      longYear: currentYear + 13,
+      longPercent: 6.0,
+    },
+    growthForecast: {
+      nearYear: currentYear + 8,
+      nearPercent: 4.0,
+      longYear: currentYear + 17,
+      longPercent: 4.0,
+    },
   };
 }
 
@@ -125,7 +135,12 @@ export function rateAt(
   );
 }
 
-export function amortisedRepayment(principal: number, annualPercent: number, periods: number, periodsPerYear: number): number {
+export function amortisedRepayment(
+  principal: number,
+  annualPercent: number,
+  periods: number,
+  periodsPerYear: number,
+): number {
   if (principal <= 0 || periods <= 0) return 0;
   const r = annualPercent / 100 / periodsPerYear;
   if (r === 0) return principal / periods;
@@ -170,7 +185,10 @@ interface PortionState {
   startPercent: number;
 }
 
-function simulate(inputs: MortgageInputs, extraPerPeriod: number): {
+function simulate(
+  inputs: MortgageInputs,
+  extraPerPeriod: number,
+): {
   points: SchedulePoint[];
   totalInterest: number;
   totalPayments: number;
@@ -268,9 +286,16 @@ function simulate(inputs: MortgageInputs, extraPerPeriod: number): {
     totalPayments += periodRepayment;
 
     const t = startT + (k + 1) / ppy;
-    const growth = rateAt(yearsFrom, inputs.growthForecast.nearPercent, inputs.growthForecast, inputs.startYear);
+    const growth = rateAt(
+      yearsFrom,
+      inputs.growthForecast.nearPercent,
+      inputs.growthForecast,
+      inputs.startYear,
+    );
     // compound property growth continuously via per-period application below
-    const prevValue = points.length ? points[points.length - 1].propertyValue : inputs.propertyValue;
+    const prevValue = points.length
+      ? points[points.length - 1].propertyValue
+      : inputs.propertyValue;
     const propertyValue = prevValue * Math.pow(1 + growth / 100, 1 / ppy);
 
     points.push({
@@ -300,8 +325,7 @@ export function calculateMortgage(inputs: MortgageInputs): MortgageResult {
   );
   const loanAmount = portions.reduce((sum, p) => sum + p.amount, 0);
   const run = simulate(inputs, inputs.extraPerPeriod);
-  const baseline =
-    inputs.extraPerPeriod > 0 ? simulate(inputs, 0) : run;
+  const baseline = inputs.extraPerPeriod > 0 ? simulate(inputs, 0) : run;
 
   const last = run.points[run.points.length - 1];
   return {

@@ -98,7 +98,9 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
                   <small>+ {money(s.final)} residual inc GST at the end</small>
                 )}
                 {s.key === 'cash' && <small>{money(s.upfront)} upfront, then running costs</small>}
-                {s.key === 'loan' && <small>at {n.carLoanRatePercent.toFixed(1)}%, no balloon</small>}
+                {s.key === 'loan' && (
+                  <small>at {n.carLoanRatePercent.toFixed(1)}%, no balloon</small>
+                )}
                 {s.key === 'redraw' && (
                   <small>at {n.mortgageRatePercent.toFixed(1)}%, repaid over the term</small>
                 )}
@@ -210,7 +212,15 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
             <div className="kv__row">
               <span>
                 Extra Medicare levy surcharge
-                <small>RFBA pushes MLS income to tier {r.withLease.mlsTierRate === 0.01 ? 1 : r.withLease.mlsTierRate === 0.0125 ? 2 : 3}; hospital cover would remove this</small>
+                <small>
+                  RFBA pushes MLS income to tier{' '}
+                  {r.withLease.mlsTierRate === 0.01
+                    ? 1
+                    : r.withLease.mlsTierRate === 0.0125
+                      ? 2
+                      : 3}
+                  ; hospital cover would remove this
+                </small>
               </span>
               <span>+{money(r.mlsDeltaPerYear)}/yr</span>
             </div>
@@ -242,7 +252,9 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
                 {r.ecmPerYear > 0 ? ` and ${money(r.ecmPerYear / 26)} post-tax` : ''} deductions
               </small>
             </span>
-            <span>{money((r.baseline.takeHome - r.takeHomeDropPerYear - r.ecmPerYear) / 26)} a fortnight</span>
+            <span>
+              {money((r.baseline.takeHome - r.takeHomeDropPerYear - r.ecmPerYear) / 26)} a fortnight
+            </span>
           </div>
           <div className="kv__row kv__row--strong">
             <span>

@@ -74,7 +74,7 @@ export function withholdingFor(
   if (frequency === 'weekly') {
     withheld = weeklyWithholding(grossPerPay, scale);
   } else if (frequency === 'fortnightly') {
-    const weekly = Math.floor(grossPerPay / 2 * 100) / 100;
+    const weekly = Math.floor((grossPerPay / 2) * 100) / 100;
     withheld = weeklyWithholding(weekly, scale) * 2;
   } else {
     // monthly

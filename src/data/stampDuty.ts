@@ -150,8 +150,7 @@ export const STAMP_DUTY: Partial<Record<AuState, JurisdictionDuty>> = {
       effective:
         'general rate from 1 July 2022 (same as residential rate), page updated 30 July 2026',
     },
-    fhbNote:
-      'First home owner rate (from 7 May 2026): nil to $600,000, concessional to $800,000.',
+    fhbNote: 'First home owner rate (from 7 May 2026): nil to $600,000, concessional to $800,000.',
   },
   VIC: {
     scale: {
@@ -227,9 +226,7 @@ export function stampDutyFor(state: AuState, value: number): number | null {
     }
     const excess = b.flatOnTotal ? value : Math.max(0, value - b.over);
     const duty =
-      s.kind === 'per100'
-        ? b.base + b.rate * Math.ceil(excess / 100)
-        : b.base + b.rate * excess;
+      s.kind === 'per100' ? b.base + b.rate * Math.ceil(excess / 100) : b.base + b.rate * excess;
     return Math.max(duty, j.minimum ?? 0);
   }
 

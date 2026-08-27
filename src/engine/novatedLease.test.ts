@@ -58,8 +58,7 @@ describe('implied APR solver (fixture A)', () => {
   it('round-trips an honest 7% loan structure', () => {
     // PMT for 84,064 at 7% over 130 fortnights with a 27,978 balloon
     const r = 0.07 / 26;
-    const pmt =
-      ((84_064 - 27_978 / Math.pow(1 + r, 130)) * r) / (1 - Math.pow(1 + r, -130));
+    const pmt = ((84_064 - 27_978 / Math.pow(1 + r, 130)) * r) / (1 - Math.pow(1 + r, -130));
     expect(impliedAnnualRatePercent(84_064, pmt, 130, 27_978)!).toBeCloseTo(7.0, 2);
   });
 

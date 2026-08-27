@@ -38,7 +38,14 @@ function niceTicks(max: number): number[] {
   return ticks;
 }
 
-export function LineChart({ times, series, height = 240, formatValue, tooltipExtras, ariaLabel }: Props) {
+export function LineChart({
+  times,
+  series,
+  height = 240,
+  formatValue,
+  tooltipExtras,
+  ariaLabel,
+}: Props) {
   const [hover, setHover] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const clipId = useId();
@@ -71,7 +78,9 @@ export function LineChart({ times, series, height = 240, formatValue, tooltipExt
   for (let yr = firstYear; yr <= times[times.length - 1]; yr += yearStep) yearTicks.push(yr);
 
   const pathFor = (tops: number[]) =>
-    tops.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(times[i]).toFixed(1)},${y(v).toFixed(1)}`).join('');
+    tops
+      .map((v, i) => `${i === 0 ? 'M' : 'L'}${x(times[i]).toFixed(1)},${y(v).toFixed(1)}`)
+      .join('');
 
   const areaFor = (tops: number[], bases: number[]) =>
     `${pathFor(tops)}L${x(times[times.length - 1]).toFixed(1)},${y(bases[bases.length - 1]).toFixed(1)}` +
@@ -146,9 +155,7 @@ export function LineChart({ times, series, height = 240, formatValue, tooltipExt
               s.stacked && si > 0 ? stackedValues[si - 1] : new Array(times.length).fill(0);
             return (
               <g key={s.label}>
-                {s.stacked && (
-                  <path d={areaFor(tops, bases)} fill={s.color} opacity={0.18} />
-                )}
+                {s.stacked && <path d={areaFor(tops, bases)} fill={s.color} opacity={0.18} />}
                 <path d={pathFor(tops)} fill="none" stroke={s.color} strokeWidth={2} />
               </g>
             );
@@ -182,7 +189,11 @@ export function LineChart({ times, series, height = 240, formatValue, tooltipExt
       {hover !== null && (
         <div
           className="chart__tooltip"
-          style={tooltipLeft ? { right: `${100 - (hoverX / W) * 100}%` } : { left: `${(hoverX / W) * 100}%` }}
+          style={
+            tooltipLeft
+              ? { right: `${100 - (hoverX / W) * 100}%` }
+              : { left: `${(hoverX / W) * 100}%` }
+          }
         >
           <b>{Math.floor(times[hover])}</b>
           {series.map((s) => (
@@ -191,7 +202,9 @@ export function LineChart({ times, series, height = 240, formatValue, tooltipExt
               {s.label} <b>{formatValue(s.values[hover])}</b>
             </span>
           ))}
-          {tooltipExtras?.(hover).map((line) => <span key={line}>{line}</span>)}
+          {tooltipExtras?.(hover).map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </div>
       )}
 

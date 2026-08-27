@@ -99,9 +99,7 @@ export function CompareInputsPanel({ compare: c, onChange, onReset }: Props) {
           max="30"
           step="0.5"
           value={c.permSuperPercent}
-          onChange={(e) =>
-            onChange({ permSuperPercent: Math.max(0, Number(e.target.value) || 0) })
-          }
+          onChange={(e) => onChange({ permSuperPercent: Math.max(0, Number(e.target.value) || 0) })}
         />
       </Field>
 

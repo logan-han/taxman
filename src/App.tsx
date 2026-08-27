@@ -38,10 +38,7 @@ export default function App() {
 
   const fyData = FY_DATA[fy];
   const result = useMemo(() => calculate(inputs, fyData), [inputs, fyData]);
-  const comparison = useMemo(
-    () => compareContractPermanent(compare, fyData),
-    [compare, fyData],
-  );
+  const comparison = useMemo(() => compareContractPermanent(compare, fyData), [compare, fyData]);
   const mortgageResult = useMemo(() => calculateMortgage(mortgage), [mortgage]);
   const novatedResult = useMemo(() => calculateNovatedLease(novated, fyData), [novated, fyData]);
 
@@ -142,40 +139,40 @@ export default function App() {
             </div>
           </div>
         ) : (
-        <div className="layout">
-          <InputsPanel inputs={inputs} fy={fy} onChange={setInputs} onReset={reset} />
+          <div className="layout">
+            <InputsPanel inputs={inputs} fy={fy} onChange={setInputs} onReset={reset} />
 
-          <div className="results">
-            <HeroCard result={result} view={view} onViewChange={setView} />
-            <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
-            <BracketsCard result={result} fyData={fyData} category={inputs.category} />
-            <PayslipCard inputs={inputs} result={result} fyData={fyData} />
+            <div className="results">
+              <HeroCard result={result} view={view} onViewChange={setView} />
+              <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
+              <BracketsCard result={result} fyData={fyData} category={inputs.category} />
+              <PayslipCard inputs={inputs} result={result} fyData={fyData} />
 
-            <p className="caption disclaimer">
-              Estimates for the {fyData.fy} financial year, assuming a full-year single job with
-              a tax file number provided. Study loan and surcharge income here include salary and
-              sacrificed super only; fringe benefits and investment losses would raise them.
-              Medicare levy family reductions and SAPTO are not modelled. This is general
-              information, not financial advice. Sources:{' '}
-              <a href={fyData.sources.brackets.url} rel="noopener">
-                tax rates
-              </a>
-              ,{' '}
-              <a href={fyData.sources.stsl.url} rel="noopener">
-                study loan thresholds
-              </a>
-              ,{' '}
-              <a href={fyData.sources.super.url} rel="noopener">
-                super guarantee
-              </a>
-              . Found a wrong number?{' '}
-              <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
-                Open an issue
-              </a>
-              .
-            </p>
+              <p className="caption disclaimer">
+                Estimates for the {fyData.fy} financial year, assuming a full-year single job with a
+                tax file number provided. Study loan and surcharge income here include salary and
+                sacrificed super only; fringe benefits and investment losses would raise them.
+                Medicare levy family reductions and SAPTO are not modelled. This is general
+                information, not financial advice. Sources:{' '}
+                <a href={fyData.sources.brackets.url} rel="noopener">
+                  tax rates
+                </a>
+                ,{' '}
+                <a href={fyData.sources.stsl.url} rel="noopener">
+                  study loan thresholds
+                </a>
+                ,{' '}
+                <a href={fyData.sources.super.url} rel="noopener">
+                  super guarantee
+                </a>
+                . Found a wrong number?{' '}
+                <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
+                  Open an issue
+                </a>
+                .
+              </p>
+            </div>
           </div>
-        </div>
         )}
       </div>
     </div>

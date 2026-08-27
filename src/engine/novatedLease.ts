@@ -246,10 +246,7 @@ export interface NovatedLeaseResult {
   leaseVsBest: number;
 }
 
-export function calculateNovatedLease(
-  inputs: NovatedLeaseInputs,
-  fy: FYData,
-): NovatedLeaseResult {
+export function calculateNovatedLease(inputs: NovatedLeaseInputs, fy: FYData): NovatedLeaseResult {
   const t = CAR_THRESHOLDS[fy.fy];
   const termYears = Math.min(5, Math.max(1, Math.round(inputs.termYears)));
   const fortnights = termYears * FORTNIGHTS_PER_YEAR;

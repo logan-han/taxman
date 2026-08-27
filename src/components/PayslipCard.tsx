@@ -88,9 +88,9 @@ export function PayslipCard({ inputs, result: r, fyData }: Props) {
 
       {inputs.hasStudentLoan && (
         <p className="caption" style={{ marginTop: 12 }}>
-          Your employer also withholds a study loan component each pay (Schedule 8, not shown
-          here). The annual repayment of {money(r.studentLoanRepayment)} is what actually comes
-          off your loan when you lodge.
+          Your employer also withholds a study loan component each pay (Schedule 8, not shown here).
+          The annual repayment of {money(r.studentLoanRepayment)} is what actually comes off your
+          loan when you lodge.
         </p>
       )}
       {r.medicareSurcharge > 0 && (

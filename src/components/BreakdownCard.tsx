@@ -35,7 +35,10 @@ export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
           <div className="tbl__row">
             <span>
               Salary sacrifice to super
-              <AtoLink href={src('concessionalCap')?.url} checked={src('concessionalCap')?.checked} />
+              <AtoLink
+                href={src('concessionalCap')?.url}
+                checked={src('concessionalCap')?.checked}
+              />
               <small>Yours, inside super</small>
             </span>
             <span>−{money(r.salarySacrificeSuper / d)}</span>
@@ -110,8 +113,7 @@ export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
 
         <div className="tbl__row tbl__row--muted">
           <span>
-            Superannuation (
-            {(fyData.superRules.guaranteeRate * 100).toFixed(1).replace('.0', '')}%)
+            Superannuation ({(fyData.superRules.guaranteeRate * 100).toFixed(1).replace('.0', '')}%)
             <AtoLink href={src('super')?.url} checked={src('super')?.checked} />
             <small>
               {inputs.salaryIncludesSuper
@@ -137,8 +139,8 @@ export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
           {r.div293Payable > 0 && (
             <p className="note--warn">
               Division 293: income plus super of {money(r.div293Income)} is over{' '}
-              {money(fyData.div293.threshold)}, adding {money(r.div293Payable)} extra tax on
-              super contributions (not included above).
+              {money(fyData.div293.threshold)}, adding {money(r.div293Payable)} extra tax on super
+              contributions (not included above).
             </p>
           )}
         </div>

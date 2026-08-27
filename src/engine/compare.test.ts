@@ -34,10 +34,7 @@ describe('contractor vs permanent', () => {
   });
 
   it('private hospital cover removes MLS from both sides', () => {
-    const r = compareContractPermanent(
-      { ...DEFAULT_COMPARE, privateHospitalCover: true },
-      fy26,
-    );
+    const r = compareContractPermanent({ ...DEFAULT_COMPARE, privateHospitalCover: true }, fy26);
     expect(r.contract.result.medicareSurcharge).toBe(0);
     expect(r.permanent.result.medicareSurcharge).toBe(0);
   });
@@ -52,10 +49,7 @@ describe('contractor vs permanent', () => {
   });
 
   it('includes-super carves super out instead of adding it on top', () => {
-    const inc = compareContractPermanent(
-      { ...DEFAULT_COMPARE, contractIncludesSuper: true },
-      fy27,
-    );
+    const inc = compareContractPermanent({ ...DEFAULT_COMPARE, contractIncludesSuper: true }, fy27);
     const excl = compareContractPermanent(DEFAULT_COMPARE, fy27);
     expect(inc.contract.packageTotal).toBeCloseTo(700 * 223, 2);
     expect(inc.contract.taxableIncome).toBeCloseTo((700 * 223) / 1.12, 2);
@@ -69,10 +63,7 @@ describe('contractor vs permanent', () => {
   });
 
   it('paid days never go negative', () => {
-    const r = compareContractPermanent(
-      { ...DEFAULT_COMPARE, publicHolidayDays: 300 },
-      fy27,
-    );
+    const r = compareContractPermanent({ ...DEFAULT_COMPARE, publicHolidayDays: 300 }, fy27);
     expect(r.contractPaidDays).toBe(0);
     expect(r.contract.takeHome).toBe(0);
   });
@@ -88,8 +79,6 @@ describe('contractor vs permanent', () => {
       expect(STATE_PUBLIC_HOLIDAYS[s]).toBeGreaterThanOrEqual(10);
       expect(STATE_PUBLIC_HOLIDAYS[s]).toBeLessThanOrEqual(15);
     }
-    expect(STATE_PUBLIC_HOLIDAYS[DEFAULT_COMPARE.state]).toBe(
-      DEFAULT_COMPARE.publicHolidayDays,
-    );
+    expect(STATE_PUBLIC_HOLIDAYS[DEFAULT_COMPARE.state]).toBe(DEFAULT_COMPARE.publicHolidayDays);
   });
 });

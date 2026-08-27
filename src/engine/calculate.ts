@@ -197,10 +197,7 @@ export function medicareSurchargeAmount(args: {
  * + reportable fringe benefits (+ investment losses, not modelled).
  * Salary sacrifice therefore does NOT reduce the repayment base.
  */
-export function studentLoanRepayment(
-  repaymentIncome: number,
-  fy: FYData,
-): { amount: number } {
+export function studentLoanRepayment(repaymentIncome: number, fy: FYData): { amount: number } {
   const s = fy.stsl;
   if (s.kind === 'flat') {
     let rate = 0;
@@ -225,12 +222,14 @@ export interface SuperResult {
   capped: boolean;
 }
 
-export function superGuaranteeAmount(annualPackageOrSalary: number, fy: FYData, includesSuper: boolean): SuperResult {
+export function superGuaranteeAmount(
+  annualPackageOrSalary: number,
+  fy: FYData,
+  includesSuper: boolean,
+): SuperResult {
   const r = fy.superRules;
   const rate = r.guaranteeRate;
-  const cashSalary = includesSuper
-    ? annualPackageOrSalary / (1 + rate)
-    : annualPackageOrSalary;
+  const cashSalary = includesSuper ? annualPackageOrSalary / (1 + rate) : annualPackageOrSalary;
   let sg = cashSalary * rate;
   let capped = false;
 
@@ -275,7 +274,12 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
   const lito = litoAmount(taxableIncome, fy, inputs.category);
   const netIncomeTax = Math.max(0, incomeTax - lito);
 
-  const medicareLevy = medicareLevyAmount(taxableIncome, fy, inputs.category, inputs.medicareExemption);
+  const medicareLevy = medicareLevyAmount(
+    taxableIncome,
+    fy,
+    inputs.category,
+    inputs.medicareExemption,
+  );
 
   const mls = medicareSurchargeAmount({
     taxable: taxableIncome,
@@ -290,9 +294,7 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
   });
 
   const repaymentIncome = taxableIncome + sacrifice + reportableFringeBenefits;
-  const stsl = inputs.hasStudentLoan
-    ? studentLoanRepayment(repaymentIncome, fy)
-    : { amount: 0 };
+  const stsl = inputs.hasStudentLoan ? studentLoanRepayment(repaymentIncome, fy) : { amount: 0 };
 
   const concessionalTotal = superGuarantee + sacrifice;
   const div293Income = taxableIncome + concessionalTotal + reportableFringeBenefits;

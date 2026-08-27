@@ -126,7 +126,10 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       </Field>
 
       {!m.existing && (
-        <Field label="Deposit" helper={`Loan ${formatThousands(loanAmount) || 0} · LVR ${lvr.toFixed(0)}%`}>
+        <Field
+          label="Deposit"
+          helper={`Loan ${formatThousands(loanAmount) || 0} · LVR ${lvr.toFixed(0)}%`}
+        >
           <input
             type="text"
             inputMode="numeric"

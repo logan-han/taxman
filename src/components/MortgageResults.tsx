@@ -4,7 +4,11 @@ import { money } from '../engine/format';
 import { LineChart } from './LineChart';
 
 const kFmt = (v: number) =>
-  v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(v >= 10_000_000 ? 0 : 1)}M` : v >= 1_000 ? `$${Math.round(v / 1_000)}K` : `$${Math.round(v)}`;
+  v >= 1_000_000
+    ? `$${(v / 1_000_000).toFixed(v >= 10_000_000 ? 0 : 1)}M`
+    : v >= 1_000
+      ? `$${Math.round(v / 1_000)}K`
+      : `$${Math.round(v)}`;
 
 interface ForecastCardProps {
   title: string;
@@ -17,7 +21,16 @@ interface ForecastCardProps {
   noun: string;
 }
 
-function ForecastSliders({ title, intro, forecast: f, minYear, maxYear, maxPercent, onChange, noun }: ForecastCardProps) {
+function ForecastSliders({
+  title,
+  intro,
+  forecast: f,
+  minYear,
+  maxYear,
+  maxPercent,
+  onChange,
+  noun,
+}: ForecastCardProps) {
   const slider = (
     label: string,
     yearKey: 'nearYear' | 'longYear',
@@ -64,8 +77,20 @@ function ForecastSliders({ title, intro, forecast: f, minYear, maxYear, maxPerce
       <p className="caption" style={{ margin: '4px 0 10px' }}>
         {intro}
       </p>
-      {slider('Near term', 'nearYear', 'nearPercent', minYear + 1, minYear + Math.floor((maxYear - minYear) / 2))}
-      {slider('Long term', 'longYear', 'longPercent', minYear + Math.floor((maxYear - minYear) / 2), maxYear)}
+      {slider(
+        'Near term',
+        'nearYear',
+        'nearPercent',
+        minYear + 1,
+        minYear + Math.floor((maxYear - minYear) / 2),
+      )}
+      {slider(
+        'Long term',
+        'longYear',
+        'longPercent',
+        minYear + Math.floor((maxYear - minYear) / 2),
+        maxYear,
+      )}
     </div>
   );
 }
@@ -78,7 +103,11 @@ interface Props {
 
 export function MortgageResults({ m, result: r, onChange }: Props) {
   const perLabel =
-    m.frequency === 'monthly' ? 'a month' : m.frequency === 'fortnightly' ? 'a fortnight' : 'a week';
+    m.frequency === 'monthly'
+      ? 'a month'
+      : m.frequency === 'fortnightly'
+        ? 'a fortnight'
+        : 'a week';
   const endYear = m.startYear + m.termYears;
   const times = r.points.map((p) => p.t);
   const ppy = PERIODS_PER_YEAR[m.frequency];
@@ -120,7 +149,14 @@ export function MortgageResults({ m, result: r, onChange }: Props) {
           </div>
         </div>
         {m.extraPerPeriod > 0 && (
-          <p className="note--warn" style={{ background: 'var(--pay-info-12p)', borderColor: 'var(--pay-info-main)', color: 'var(--pay-info-dark)' }}>
+          <p
+            className="note--warn"
+            style={{
+              background: 'var(--pay-info-12p)',
+              borderColor: 'var(--pay-info-main)',
+              color: 'var(--pay-info-dark)',
+            }}
+          >
             Extra {money(m.extraPerPeriod)} {perLabel} pays the loan off{' '}
             {r.yearsSavedByExtras.toFixed(1)} years earlier and saves{' '}
             {money(r.interestSavedByExtras)} in interest.

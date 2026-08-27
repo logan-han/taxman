@@ -41,10 +41,32 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
     muted?: boolean;
     sourceKey?: string;
   }[] = [
-    { label: 'Package including super', perm: r.permanent.packageTotal, contract: r.contract.packageTotal, muted: true },
-    { label: 'Taxable income', perm: r.permanent.taxableIncome, contract: r.contract.taxableIncome, muted: true },
-    { label: 'Income tax', perm: -r.permanent.result.netIncomeTax, contract: -r.contract.result.netIncomeTax, signed: true, sourceKey: 'brackets' },
-    { label: 'Medicare levy', perm: -r.permanent.result.medicareLevy, contract: -r.contract.result.medicareLevy, signed: true, sourceKey: 'medicare' },
+    {
+      label: 'Package including super',
+      perm: r.permanent.packageTotal,
+      contract: r.contract.packageTotal,
+      muted: true,
+    },
+    {
+      label: 'Taxable income',
+      perm: r.permanent.taxableIncome,
+      contract: r.contract.taxableIncome,
+      muted: true,
+    },
+    {
+      label: 'Income tax',
+      perm: -r.permanent.result.netIncomeTax,
+      contract: -r.contract.result.netIncomeTax,
+      signed: true,
+      sourceKey: 'brackets',
+    },
+    {
+      label: 'Medicare levy',
+      perm: -r.permanent.result.medicareLevy,
+      contract: -r.contract.result.medicareLevy,
+      signed: true,
+      sourceKey: 'medicare',
+    },
     ...(r.permanent.result.medicareSurcharge > 0 || r.contract.result.medicareSurcharge > 0
       ? [
           {
@@ -84,8 +106,7 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
             {money(Math.abs(r.deltaWithSuper))}{' '}
             {r.deltaWithSuper >= 0 ? 'in favour of contracting' : 'in favour of permanent'}. Based
             on {r.contractPaidDays} contract paid days ({c.workDaysPerYear} work days −{' '}
-            {c.publicHolidayDays} public holidays − {c.annualLeaveDays} leave − {c.sickDays}{' '}
-            sick).
+            {c.publicHolidayDays} public holidays − {c.annualLeaveDays} leave − {c.sickDays} sick).
           </span>
         </div>
 
@@ -147,12 +168,12 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
 
       <p className="caption disclaimer">
         Both offers are taxed as a full-year Australian resident with the tax-free threshold, in{' '}
-        {fyData.fy}, including the low income tax offset, the Medicare levy low-income reduction
-        and the levy surcharge where they apply. A contractor is only paid for days worked;
-        leave, sick days and public holidays are unpaid. Contract super is{' '}
-        {c.contractIncludesSuper ? 'carved out of the quoted rate' : 'assumed on top of the rate'}
-        . GST, business expenses, insurances, payroll tax and personal services income rules are
-        not modelled. Not financial advice.
+        {fyData.fy}, including the low income tax offset, the Medicare levy low-income reduction and
+        the levy surcharge where they apply. A contractor is only paid for days worked; leave, sick
+        days and public holidays are unpaid. Contract super is{' '}
+        {c.contractIncludesSuper ? 'carved out of the quoted rate' : 'assumed on top of the rate'}.
+        GST, business expenses, insurances, payroll tax and personal services income rules are not
+        modelled. Not financial advice.
       </p>
     </>
   );
