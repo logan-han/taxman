@@ -14,6 +14,36 @@ describe('Field', () => {
     expect(screen.getByLabelText('Salary input')).toBeInTheDocument();
   });
 
+  it('labels a plain input through the wrapping label', () => {
+    render(
+      <Field label="Deposit">
+        <input />
+      </Field>,
+    );
+    expect(screen.getByLabelText('Deposit')).toBeInTheDocument();
+  });
+
+  it('leaves a button group to name itself', () => {
+    render(
+      <Field group label="Vehicle" helper="PHEVs count as non-EV">
+        <ToggleGroup
+          ariaLabel="Vehicle type"
+          options={[
+            { label: 'EV', value: 'bev' },
+            { label: 'Non-EV', value: 'ice' },
+          ]}
+          value="bev"
+          onChange={() => {}}
+        />
+      </Field>,
+    );
+    // a <label> wrapper would name this button after the whole field instead
+    expect(screen.getByRole('button', { name: 'EV' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Vehicle type' })).toBeInTheDocument();
+    expect(screen.getByText('Vehicle')).toBeInTheDocument();
+    expect(screen.getByText('PHEVs count as non-EV')).toBeInTheDocument();
+  });
+
   it('omits the helper when there is none', () => {
     const { container } = render(
       <Field label="Salary">

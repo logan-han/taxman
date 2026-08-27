@@ -54,7 +54,7 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
     <form className="inputs card" onSubmit={(e) => e.preventDefault()}>
       <span className="overline">Copy these from the quote</span>
 
-      <Field label="Vehicle" helper="PHEVs count as non-EV: new leases lost the exemption in 2025">
+      <Field group label="Vehicle" helper="PHEVs count as non-EV: new leases lost the exemption in 2025">
         <ToggleGroup
           ariaLabel="Vehicle type"
           options={[

@@ -15,10 +15,8 @@ function setup(patch: Partial<NovatedLeaseInputs> = {}) {
 describe('NovatedInputsPanel', () => {
   it('switches the vehicle type', () => {
     const { onChange } = setup();
-    const group = screen.getByRole('group', { name: 'Vehicle type' });
-    const [ev, nonEv] = Array.from(group.querySelectorAll('button'));
-    expect(ev).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(nonEv);
+    expect(screen.getByRole('button', { name: 'EV' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Non-EV' }));
     expect(onChange).toHaveBeenCalledWith({ vehicleType: 'ice' });
   });
 

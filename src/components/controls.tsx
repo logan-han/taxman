@@ -4,13 +4,24 @@ export function Field(props: {
   label: string;
   helper?: string;
   children: ReactNode;
+  /**
+   * Wrap in a div rather than a label. A label names its first labelable
+   * descendant, so around a button group the first button would be announced
+   * as the whole field, helper text and all. The group labels itself.
+   */
+  group?: boolean;
 }) {
-  return (
-    <label className="field">
+  const inner = (
+    <>
       <span className="field__label">{props.label}</span>
       {props.children}
       {props.helper ? <span className="field__helper">{props.helper}</span> : null}
-    </label>
+    </>
+  );
+  return props.group ? (
+    <div className="field">{inner}</div>
+  ) : (
+    <label className="field">{inner}</label>
   );
 }
 
