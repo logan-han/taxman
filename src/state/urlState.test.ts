@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseUrlState, serialiseUrlState, DEFAULT_VIEW } from './urlState';
+import { parseUrlState, serialiseUrlState, syncUrl, DEFAULT_VIEW } from './urlState';
 import { DEFAULT_INPUTS } from '../engine/calculate';
 import { DEFAULT_COMPARE } from '../engine/compare';
 import { defaultMortgage } from '../engine/mortgage';
@@ -139,5 +139,119 @@ describe('URL state', () => {
     const parsed = parseUrlState(q, '2026-27');
     expect(parsed.mode).toBe('novated');
     expect(parsed.novated).toEqual(state.novated);
+  });
+
+  it('legacy nvt=phev URLs fall back to petrol treatment', () => {
+    // the PHEV exemption ended April 2025, so old shared links must not claim it
+    expect(parseUrlState('?mode=n&nvt=phev', '2026-27').novated.vehicleType).toBe('ice');
+    expect(parseUrlState('?mode=n&nvt=junk', '2026-27').novated.vehicleType).toBe('bev');
+  });
+
+  it('mortgage mode with defaults keeps the URL short', () => {
+    const q = serialiseUrlState(
+      { ...BASE, mode: 'mortgage', inputs: DEFAULT_INPUTS, fy: '2026-27', view: DEFAULT_VIEW },
+      '2026-27',
+    );
+    expect(q).toBe('?mode=m');
+  });
+
+  it('round-trips a split existing-loan mortgage', () => {
+    const thisYear = new Date().getFullYear();
+    const mortgage = {
+      ...defaultMortgage(thisYear),
+      dutyState: 'VIC' as const,
+      existing: true,
+      startYear: 2019,
+      startMonth: 3,
+      propertyValue: 1_200_000,
+      deposit: 300_000,
+      upfrontFees: 55_000,
+      termYears: 25,
+      frequency: 'fortnightly' as const,
+      portions: [
+        { amount: 700_000, ratePercent: 5.75, option: 'fixed3y' as const, interestOnlyYears: 2 },
+        {
+          amount: 200_000,
+          ratePercent: 6.25,
+          option: 'interestOnly' as const,
+          interestOnlyYears: 1,
+        },
+      ] as (typeof BASE)['mortgage']['portions'],
+      split: true,
+      extraPerPeriod: 250,
+      rateForecast: {
+        nearYear: thisYear + 2,
+        nearPercent: 5,
+        longYear: thisYear + 10,
+        longPercent: 5.5,
+      },
+      growthForecast: {
+        nearYear: thisYear + 5,
+        nearPercent: 3,
+        longYear: thisYear + 15,
+        longPercent: 3.5,
+      },
+    };
+    const q = serialiseUrlState(
+      {
+        ...BASE,
+        mode: 'mortgage',
+        mortgage,
+        inputs: DEFAULT_INPUTS,
+        fy: '2026-27',
+        view: DEFAULT_VIEW,
+      },
+      '2026-27',
+    );
+    expect(q).toContain('mode=m');
+    expect(parseUrlState(q, '2026-27').mortgage).toEqual(mortgage);
+  });
+
+  it('clamps out-of-range mortgage numbers to the defaults', () => {
+    const parsed = parseUrlState('?mode=m&mtm=99&mr1=999&mst=QQ&mfq=daily&mo1=nope', '2026-27');
+    const dm = defaultMortgage(new Date().getFullYear());
+    expect(parsed.mortgage.termYears).toBe(dm.termYears);
+    expect(parsed.mortgage.portions[0].ratePercent).toBe(dm.portions[0].ratePercent);
+    expect(parsed.mortgage.dutyState).toBe(dm.dutyState);
+    expect(parsed.mortgage.frequency).toBe(dm.frequency);
+    expect(parsed.mortgage.portions[0].option).toBe(dm.portions[0].option);
+  });
+});
+
+describe('syncUrl', () => {
+  it('writes the serialised state to the address bar', () => {
+    window.history.replaceState(null, '', '/');
+    syncUrl(
+      {
+        ...BASE,
+        inputs: { ...DEFAULT_INPUTS, salary: 123_000 },
+        fy: '2026-27',
+        view: DEFAULT_VIEW,
+      },
+      '2026-27',
+    );
+    expect(window.location.search).toBe('?s=123000');
+  });
+
+  it('leaves the URL alone when nothing changed', () => {
+    window.history.replaceState(null, '', '/?s=123000');
+    const before = window.history.length;
+    syncUrl(
+      {
+        ...BASE,
+        inputs: { ...DEFAULT_INPUTS, salary: 123_000 },
+        fy: '2026-27',
+        view: DEFAULT_VIEW,
+      },
+      '2026-27',
+    );
+    expect(window.location.search).toBe('?s=123000');
+    expect(window.history.length).toBe(before);
+  });
+
+  it('clears the query string when everything is back to default', () => {
+    window.history.replaceState(null, '', '/?s=123000');
+    syncUrl({ ...BASE, inputs: DEFAULT_INPUTS, fy: '2026-27', view: DEFAULT_VIEW }, '2026-27');
+    expect(window.location.search).toBe('');
   });
 });
