@@ -96,7 +96,7 @@ export default function App() {
                 open source
               </a>{' '}
               ·{' '}
-              <a href="https://coffee.han.life" target="_blank" rel="noopener">
+              <a href="https://han.life/coffee" target="_blank" rel="noopener">
                 ☕ Buy me a coffee
               </a>
             </span>
