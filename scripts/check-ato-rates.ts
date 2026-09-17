@@ -3,9 +3,11 @@
  *
  * Checks that the figures shipped in src/data still match what the ATO
  * publishes, deriving every expected string from FY_DATA rather than
- * hardcoding it. ato.gov.au blocks headless browsers (client hints betray
- * HeadlessChrome) but accepts plain HTTPS with a browser user agent, so this
- * uses bare fetch.
+ * hardcoding it. ato.gov.au sits behind Akamai bot manager, which scores the
+ * request headers rather than the IP: a bare user agent is refused even from a
+ * residential connection, while the full header set a real Chrome navigation
+ * sends is served from anywhere, CI runners included. So this uses plain fetch
+ * with those headers.
  *
  * It never writes data. Exit codes:
  *   0 = everything matches
@@ -35,13 +37,27 @@ const norm = (s: string) =>
     .replace(/[–—]/g, '-')
     .replace(/\s+/g, ' ');
 
-const UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+const CHROME_VERSION = '140';
+const UA = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${CHROME_VERSION}.0.0.0 Safari/537.36`;
 
+/**
+ * Akamai 403s anything that looks hand-rolled, so send what Chrome sends on a
+ * top-level navigation. Dropping the client hints or the sec-fetch set is
+ * enough on its own to be refused.
+ */
 const HEADERS = {
   'user-agent': UA,
-  accept: 'text/html,application/xhtml+xml',
+  accept:
+    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
   'accept-language': 'en-AU,en;q=0.9',
+  'sec-ch-ua': `"Chromium";v="${CHROME_VERSION}", "Not=A?Brand";v="24", "Google Chrome";v="${CHROME_VERSION}"`,
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'sec-fetch-dest': 'document',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'none',
+  'sec-fetch-user': '?1',
+  'upgrade-insecure-requests': '1',
 };
 
 /** snapshots older than this are treated as blocked, not checked */
@@ -55,9 +71,9 @@ interface FetchedPage {
 }
 
 /**
- * ato.gov.au serves 403 to datacentre IPs (e.g. CI runners) regardless of
- * user agent, so when the live fetch is refused, fall back to the newest
- * Wayback Machine snapshot. A few days' lag is fine for drift detection.
+ * Kept as a safety net for the day Akamai tightens again (or the site is
+ * down): when the live fetch is refused, fall back to the newest Wayback
+ * Machine snapshot. A few days' lag is fine for drift detection.
  */
 async function fetchPage(url: string): Promise<FetchedPage> {
   if (process.env.ATO_SENTINEL_FORCE_WAYBACK !== '1') {
