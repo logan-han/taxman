@@ -3,7 +3,7 @@ import type { NovatedLeaseInputs } from '../engine/novatedLease';
 import type { VehicleType } from '../data/fbt';
 import { CAR_THRESHOLDS, MIN_RESIDUAL_PERCENT } from '../data/fbt';
 import { money } from '../engine/format';
-import { Field, Switch, ToggleGroup } from './controls';
+import { AmountInput, Field, Switch, ToggleGroup } from './controls';
 
 const MONTHS = [
   'January',
@@ -19,15 +19,6 @@ const MONTHS = [
   'November',
   'December',
 ];
-
-function formatThousands(v: number): string {
-  return v === 0 ? '' : Math.round(v).toLocaleString('en-AU');
-}
-
-function parseAmount(raw: string): number {
-  const n = Number(raw.replace(/[^0-9.]/g, ''));
-  return Number.isFinite(n) ? n : 0;
-}
 
 interface Props {
   n: NovatedLeaseInputs;
@@ -71,13 +62,11 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
       </Field>
 
       <Field label="Car price" helper="The quoted vehicle price">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Car price"
-          value={formatThousands(n.carPrice)}
+          value={n.carPrice}
           placeholder="90,417"
-          onChange={(e) => onChange({ carPrice: parseAmount(e.target.value) })}
+          onValueChange={(carPrice) => onChange({ carPrice })}
         />
       </Field>
 
@@ -121,13 +110,11 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
       </div>
 
       <Field label="Residual value" helper="The balloon you owe at the end, as quoted">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Residual value"
-          value={formatThousands(n.residual)}
+          value={n.residual}
           placeholder="19,310"
-          onChange={(e) => onChange({ residual: parseAmount(e.target.value) })}
+          onValueChange={(residual) => onChange({ residual })}
         />
       </Field>
       <span className="caption">
@@ -185,26 +172,22 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
         label="Amount financed"
         helper="Only if the quote discloses it; 0 estimates price less the GST credit"
       >
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Amount financed"
-          value={formatThousands(n.amountFinanced)}
+          value={n.amountFinanced}
           placeholder="0"
-          onChange={(e) => onChange({ amountFinanced: parseAmount(e.target.value) })}
+          onValueChange={(amountFinanced) => onChange({ amountFinanced })}
         />
       </Field>
       <Field
         label="FBT base value"
         helper="Drive-away less government on-roads, if shown; 0 uses car price"
       >
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="FBT base value"
-          value={formatThousands(n.fbtBaseValue)}
+          value={n.fbtBaseValue}
           placeholder="0"
-          onChange={(e) => onChange({ fbtBaseValue: parseAmount(e.target.value) })}
+          onValueChange={(fbtBaseValue) => onChange({ fbtBaseValue })}
         />
       </Field>
       <Switch
@@ -218,13 +201,11 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
       <span className="overline">You</span>
 
       <Field label="Salary (a year)">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Salary"
-          value={formatThousands(n.salary)}
+          value={n.salary}
           placeholder="100,000"
-          onChange={(e) => onChange({ salary: parseAmount(e.target.value) })}
+          onValueChange={(salary) => onChange({ salary })}
         />
       </Field>
       <div className="inputs__switches">

@@ -1,6 +1,6 @@
 import type { FinancialYear, TaxCategory } from '../data';
 import type { CalculatorInputs, PayCycle } from '../engine/calculate';
-import { Field, Switch, ToggleGroup } from './controls';
+import { AmountInput, Field, Switch, ToggleGroup } from './controls';
 
 const CYCLE_OPTIONS: { label: string; value: PayCycle }[] = [
   { label: 'A year', value: 'annual' },
@@ -18,15 +18,6 @@ const CATEGORY_OPTIONS: { label: string; value: TaxCategory }[] = [
   { label: 'Working holiday maker (417/462)', value: 'whm' },
 ];
 
-function formatThousands(v: number): string {
-  return v === 0 ? '' : v.toLocaleString('en-AU');
-}
-
-function parseAmount(raw: string): number {
-  const n = Number(raw.replace(/[^0-9.]/g, ''));
-  return Number.isFinite(n) ? n : 0;
-}
-
 interface Props {
   inputs: CalculatorInputs;
   fy: FinancialYear;
@@ -43,14 +34,11 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
         label="Salary before tax"
         helper={inputs.salaryIncludesSuper ? 'Package including super' : 'Excluding super'}
       >
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
+        <AmountInput
           aria-label="Pay amount"
-          value={formatThousands(inputs.salary)}
+          value={inputs.salary}
           placeholder="90,000"
-          onChange={(e) => onChange({ salary: parseAmount(e.target.value) })}
+          onValueChange={(salary) => onChange({ salary })}
         />
       </Field>
 
@@ -161,12 +149,10 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
 
         {inputs.hasSpouse && (
           <Field label="Spouse income (a year)">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatThousands(inputs.spouseIncome)}
+            <AmountInput
+              value={inputs.spouseIncome}
               placeholder="0"
-              onChange={(e) => onChange({ spouseIncome: parseAmount(e.target.value) })}
+              onValueChange={(spouseIncome) => onChange({ spouseIncome })}
             />
           </Field>
         )}
@@ -184,22 +170,18 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
         </div>
 
         <Field label="Salary sacrifice to super (a year)">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formatThousands(inputs.salarySacrificeSuper)}
+          <AmountInput
+            value={inputs.salarySacrificeSuper}
             placeholder="0"
-            onChange={(e) => onChange({ salarySacrificeSuper: parseAmount(e.target.value) })}
+            onValueChange={(salarySacrificeSuper) => onChange({ salarySacrificeSuper })}
           />
         </Field>
 
         <Field label="Other deductions (a year)">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formatThousands(inputs.deductions)}
+          <AmountInput
+            value={inputs.deductions}
             placeholder="0"
-            onChange={(e) => onChange({ deductions: parseAmount(e.target.value) })}
+            onValueChange={(deductions) => onChange({ deductions })}
           />
         </Field>
       </div>

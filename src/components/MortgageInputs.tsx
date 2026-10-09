@@ -3,7 +3,7 @@ import { AU_STATES } from '../engine/compare';
 import type { InterestOption, MortgageInputs, RepaymentFrequency } from '../engine/mortgage';
 import { STAMP_DUTY, stampDutyFor } from '../data/stampDuty';
 import { money } from '../engine/format';
-import { Field, Switch } from './controls';
+import { AmountInput, Field, Switch, formatAmount } from './controls';
 
 const OPTION_LABELS: Record<InterestOption, string> = {
   variable: 'Variable',
@@ -21,15 +21,6 @@ const FREQ_LABELS: Record<RepaymentFrequency, string> = {
   fortnightly: 'Fortnightly',
   weekly: 'Weekly',
 };
-
-function formatThousands(v: number): string {
-  return v === 0 ? '' : Math.round(v).toLocaleString('en-AU');
-}
-
-function parseAmount(raw: string): number {
-  const n = Number(raw.replace(/[^0-9.]/g, ''));
-  return Number.isFinite(n) ? n : 0;
-}
 
 interface Props {
   m: MortgageInputs;
@@ -111,14 +102,11 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       )}
 
       <Field label="Property value">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Property value"
-          value={formatThousands(m.propertyValue)}
+          value={m.propertyValue}
           placeholder="1,000,000"
-          onChange={(e) => {
-            const propertyValue = parseAmount(e.target.value);
+          onValueChange={(propertyValue) => {
             onChange({ propertyValue });
             if (!m.existing) setPortionAmounts(Math.max(0, propertyValue - m.deposit));
           }}
@@ -128,27 +116,23 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       {!m.existing && (
         <Field
           label="Deposit"
-          helper={`Loan ${formatThousands(loanAmount) || 0} · LVR ${lvr.toFixed(0)}%`}
+          helper={`Loan ${formatAmount(Math.round(loanAmount)) || 0} · LVR ${lvr.toFixed(0)}%`}
         >
-          <input
-            type="text"
-            inputMode="numeric"
+          <AmountInput
             aria-label="Deposit"
-            value={formatThousands(m.deposit)}
+            value={m.deposit}
             placeholder="200,000"
-            onChange={(e) => setDeposit(parseAmount(e.target.value))}
+            onValueChange={setDeposit}
           />
         </Field>
       )}
 
       {m.existing && (
         <Field label="Loan amount" helper={`LVR ${lvr.toFixed(0)}%`}>
-          <input
-            type="text"
-            inputMode="numeric"
+          <AmountInput
             aria-label="Loan amount"
-            value={formatThousands(loanAmount)}
-            onChange={(e) => setPortionAmounts(parseAmount(e.target.value))}
+            value={loanAmount}
+            onValueChange={setPortionAmounts}
           />
         </Field>
       )}
@@ -181,13 +165,11 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       </div>
 
       <Field label="Upfront fees" helper="Stamp duty, legal and lender fees">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Upfront fees"
-          value={formatThousands(m.upfrontFees)}
+          value={m.upfrontFees}
           placeholder="0"
-          onChange={(e) => onChange({ upfrontFees: parseAmount(e.target.value) })}
+          onValueChange={(upfrontFees) => onChange({ upfrontFees })}
         />
       </Field>
 
@@ -276,11 +258,9 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       )}
       {m.split && (
         <Field label="Portion one amount">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formatThousands(m.portions[0].amount)}
-            onChange={(e) => setPortion(0, { amount: parseAmount(e.target.value) })}
+          <AmountInput
+            value={m.portions[0].amount}
+            onValueChange={(amount) => setPortion(0, { amount })}
           />
         </Field>
       )}
@@ -309,11 +289,9 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
         <>
           <span className="overline">Portion two</span>
           <Field label="Portion two amount">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatThousands(m.portions[1].amount)}
-              onChange={(e) => setPortion(1, { amount: parseAmount(e.target.value) })}
+            <AmountInput
+              value={m.portions[1].amount}
+              onValueChange={(amount) => setPortion(1, { amount })}
             />
           </Field>
           <div className="inputs__aux">
@@ -349,13 +327,11 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
         label={`Extra repayment per ${m.frequency === 'monthly' ? 'month' : m.frequency === 'fortnightly' ? 'fortnight' : 'week'}`}
         helper="On top of the required repayment"
       >
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Extra repayment"
-          value={formatThousands(m.extraPerPeriod)}
+          value={m.extraPerPeriod}
           placeholder="0"
-          onChange={(e) => onChange({ extraPerPeriod: parseAmount(e.target.value) })}
+          onValueChange={(extraPerPeriod) => onChange({ extraPerPeriod })}
         />
       </Field>
 

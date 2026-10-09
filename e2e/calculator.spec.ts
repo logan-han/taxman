@@ -69,6 +69,29 @@ test.describe('taxman calculator', () => {
     await expect(page.getByText('Schedule 15')).toBeVisible();
   });
 
+  test('an hourly rate with cents can be typed key by key', async ({ page }) => {
+    await page.goto('/?c=hourly');
+    const pay = page.getByLabel('Pay amount');
+    await pay.fill('');
+    await pay.pressSequentially('45.50');
+    await expect(pay).toHaveValue('45.50');
+    await expect(page).toHaveURL(/s=45\.5(&|$)/);
+    // 45.50 x 38 x 52
+    await expect(page.getByTestId('gross')).toHaveText('$89,908');
+  });
+
+  test('editing mid-number keeps the caret in place', async ({ page }) => {
+    await page.goto('/');
+    const pay = page.getByLabel('Pay amount');
+    await pay.click();
+    await pay.press('Home');
+    await pay.press('ArrowRight');
+    await page.keyboard.type('5');
+    await page.keyboard.type('9');
+    // with the caret lost to the end the 9 would land last: 15,000,009
+    await expect(pay).toHaveValue('15,900,000');
+  });
+
   test('keyboard-only flow can operate the calculator', async ({ page }) => {
     await page.goto('/');
     const pay = page.getByLabel('Pay amount');

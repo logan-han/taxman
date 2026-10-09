@@ -1,4 +1,85 @@
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
+
+/** Thousands-separated, blank at zero so the placeholder shows. */
+export function formatAmount(v: number): string {
+  return v === 0 ? '' : v.toLocaleString('en-AU', { maximumFractionDigits: 2 });
+}
+
+/** The number in typed text; separators, $ and stray characters are ignored. */
+export function parseAmount(raw: string): number {
+  const n = Number(raw.replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Regroup typed text without eating a trailing "." or the cents after it. */
+export function regroupTyped(raw: string): string {
+  const cleaned = raw.replace(/[^0-9.]/g, '');
+  const dot = cleaned.indexOf('.');
+  const whole = (dot === -1 ? cleaned : cleaned.slice(0, dot)).replace(/^0+(?=\d)/, '');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (dot === -1) return grouped;
+  return `${grouped || '0'}.${cleaned
+    .slice(dot + 1)
+    .replace(/\./g, '')
+    .slice(0, 2)}`;
+}
+
+const significant = (s: string) => s.replace(/[^0-9.]/g, '').length;
+
+/**
+ * Dollar amount typed as text with live thousands separators. Keeps what the
+ * user typed while it still reads as the current value, so "45." and "45.50"
+ * survive keystroke by keystroke, and holds the caret when commas move.
+ */
+export function AmountInput({
+  value,
+  onValueChange,
+  onBlur,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> & {
+  value: number;
+  onValueChange: (value: number) => void;
+}) {
+  const [typed, setTyped] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  // digits and dots left of the caret, restored after the regrouped render
+  const caret = useRef<number | null>(null);
+  const text = typed !== null && parseAmount(typed) === value ? typed : formatAmount(value);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (caret.current === null || !el || document.activeElement !== el) return;
+    let i = 0;
+    for (let seen = 0; i < el.value.length && seen < caret.current; i++) {
+      if (/[0-9.]/.test(el.value[i])) seen++;
+    }
+    el.setSelectionRange(i, i);
+    caret.current = null;
+  });
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      {...rest}
+      ref={ref}
+      value={text}
+      onChange={(e) => {
+        const raw = e.target.value;
+        caret.current = significant(raw.slice(0, e.target.selectionStart ?? raw.length));
+        const next = regroupTyped(raw);
+        setTyped(next);
+        onValueChange(parseAmount(next));
+      }}
+      onBlur={(e) => {
+        setTyped(null);
+        onBlur?.(e);
+      }}
+    />
+  );
+}
 
 export function Field(props: {
   label: string;

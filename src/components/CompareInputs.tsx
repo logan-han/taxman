@@ -1,15 +1,6 @@
 import type { AuState, CompareInputs } from '../engine/compare';
 import { AU_STATES, STATE_PUBLIC_HOLIDAYS } from '../engine/compare';
-import { Field, Switch, ToggleGroup } from './controls';
-
-function formatThousands(v: number): string {
-  return v === 0 ? '' : v.toLocaleString('en-AU');
-}
-
-function parseAmount(raw: string): number {
-  const n = Number(raw.replace(/[^0-9.]/g, ''));
-  return Number.isFinite(n) ? n : 0;
-}
+import { AmountInput, Field, Switch } from './controls';
 
 interface Props {
   compare: CompareInputs;
@@ -24,13 +15,11 @@ export function CompareInputsPanel({ compare: c, onChange, onReset }: Props) {
 
       <div className="inputs__aux">
         <Field label={c.contractTimeUnit === 'daily' ? 'Day rate' : 'Hourly rate'}>
-          <input
-            type="text"
-            inputMode="numeric"
+          <AmountInput
             aria-label="Contract rate"
-            value={formatThousands(c.contractRate)}
+            value={c.contractRate}
             placeholder="700"
-            onChange={(e) => onChange({ contractRate: parseAmount(e.target.value) })}
+            onValueChange={(contractRate) => onChange({ contractRate })}
           />
         </Field>
         <Field label="Rate is per">
@@ -69,22 +58,18 @@ export function CompareInputsPanel({ compare: c, onChange, onReset }: Props) {
       <span className="overline">Permanent offer</span>
 
       <Field label="Annual salary">
-        <input
-          type="text"
-          inputMode="numeric"
+        <AmountInput
           aria-label="Permanent salary"
-          value={formatThousands(c.permSalary)}
+          value={c.permSalary}
           placeholder="130,000"
-          onChange={(e) => onChange({ permSalary: parseAmount(e.target.value) })}
+          onValueChange={(permSalary) => onChange({ permSalary })}
         />
       </Field>
       <Field label="Bonus (a year)">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={formatThousands(c.permBonus)}
+        <AmountInput
+          value={c.permBonus}
           placeholder="0"
-          onChange={(e) => onChange({ permBonus: parseAmount(e.target.value) })}
+          onValueChange={(permBonus) => onChange({ permBonus })}
         />
       </Field>
       <Switch
@@ -208,5 +193,3 @@ export function CompareInputsPanel({ compare: c, onChange, onReset }: Props) {
     </form>
   );
 }
-
-export { ToggleGroup };
