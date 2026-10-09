@@ -109,6 +109,85 @@ describe('Medicare levy', () => {
   });
 });
 
+describe('Medicare levy family reduction (s 8, family threshold $47,238 + $4,338 a child)', () => {
+  const couple = (spouseIncome = 0, dependants = 0) => ({
+    hasSpouse: true,
+    spouseIncome,
+    dependants,
+  });
+
+  it('nil levy while family income is at or below the threshold', () => {
+    expect(medicareLevyAmount(45_000, fy27, 'resident', 'none')).toBeCloseTo(900, 2);
+    expect(medicareLevyAmount(45_000, fy27, 'resident', 'none', couple())).toBe(0);
+    expect(medicareLevyAmount(47_238, fy27, 'resident', 'none', couple())).toBe(0);
+  });
+
+  it('a sole parent gets the child uplift: 2 kids lift the threshold to $55,914', () => {
+    const soleParent = { hasSpouse: false, spouseIncome: 0, dependants: 2 };
+    expect(medicareLevyAmount(55_000, fy27, 'resident', 'none', soleParent)).toBe(0);
+    expect(medicareLevyAmount(55_000, fy27, 'resident', 'none')).toBeCloseTo(1_100, 2);
+  });
+
+  it('shades in at 10c in the dollar over the threshold for a one-income family', () => {
+    // reduction 2% x 47,238 - 8% x 2,762 = 723.80, off a $1,000 levy
+    expect(medicareLevyAmount(50_000, fy27, 'resident', 'none', couple())).toBeCloseTo(276.2, 2);
+  });
+
+  it('the reduction runs out at 1.25x the threshold', () => {
+    expect(medicareLevyAmount(59_048, fy27, 'resident', 'none', couple())).toBeCloseTo(
+      0.02 * 59_048,
+      2,
+    );
+    expect(medicareLevyAmount(60_000, fy27, 'resident', 'none', couple())).toBeCloseTo(1_200, 2);
+  });
+
+  it('is continuous across the threshold and the cut-out', () => {
+    for (const ti of [47_238, 59_047.5]) {
+      const below = medicareLevyAmount(ti - 0.01, fy27, 'resident', 'none', couple());
+      const above = medicareLevyAmount(ti + 0.01, fy27, 'resident', 'none', couple());
+      expect(Math.abs(above - below)).toBeLessThan(0.01);
+    }
+  });
+
+  it('shares the reduction by income only when the spouse also pays the levy', () => {
+    // spouse $28,500 pays levy: reduction 2% x 47,238 - 8% x 11,262 = 43.80,
+    // 30/58.5 of it is ours, off our shaded-in $198.90
+    expect(medicareLevyAmount(30_000, fy27, 'resident', 'none', couple(28_500))).toBeCloseTo(
+      198.9 - (43.8 * 30_000) / 58_500,
+      2,
+    );
+    // spouse $20,000 is under the single threshold, so the whole reduction is ours:
+    // 2% x 47,238 - 8% x 2,762 = 723.80 off our $198.90, floored at nil
+    expect(medicareLevyAmount(30_000, fy27, 'resident', 'none', couple(20_000))).toBe(0);
+  });
+
+  it('three children: threshold $60,252, dual income $40k + $30k', () => {
+    // reduction 2% x 60,252 - 8% x 9,748 = 425.20, our 4/7 share off $800
+    const levy = medicareLevyAmount(40_000, fy27, 'resident', 'none', couple(30_000, 3));
+    expect(levy).toBeCloseTo(800 - (425.2 * 4) / 7, 2);
+  });
+
+  it('FY2024-25 uses the $45,907 threshold', () => {
+    expect(medicareLevyAmount(46_000, fy25, 'resident', 'none', couple())).toBeCloseTo(9.3, 2);
+  });
+
+  it('a half exemption halves the family-reduced levy', () => {
+    expect(medicareLevyAmount(50_000, fy27, 'resident', 'half', couple())).toBeCloseTo(138.1, 2);
+  });
+
+  it('calculate() applies it from the spouse and children inputs and reports the reduction', () => {
+    const r = calculate(
+      { ...DEFAULT_INPUTS, salary: 50_000, hasSpouse: true, spouseIncome: 0 },
+      fy27,
+    );
+    expect(r.medicareLevy).toBeCloseTo(276.2, 2);
+    expect(r.medicareFamilyReduction).toBeCloseTo(723.8, 2);
+    const single = calculate({ ...DEFAULT_INPUTS, salary: 50_000 }, fy27);
+    expect(single.medicareFamilyReduction).toBe(0);
+    expect(r.takeHome - single.takeHome).toBeCloseTo(723.8, 2);
+  });
+});
+
 describe('Medicare levy surcharge', () => {
   it('no surcharge with private hospital cover', () => {
     const r = calculate({ ...DEFAULT_INPUTS, salary: 150_000, privateHospitalCover: true }, fy27);

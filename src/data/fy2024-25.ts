@@ -42,6 +42,8 @@ export const fy2024_25: FYData = {
     lowerSingle: 27_222,
     upperSingle: 34_027,
     shadeInRate: 0.1,
+    familyThreshold: 45_907,
+    familyPerChild: 4_216,
   },
 
   mls: {
@@ -109,6 +111,11 @@ export const fy2024_25: FYData = {
       url: 'https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption',
       checked: '2026-08-07',
       note: 'myTax 2025 instructions, Table 2: single lower $27,222, upper $34,027',
+    },
+    medicareFamily: {
+      url: 'https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption',
+      checked: '2026-10-10',
+      note: 'myTax 2025 Worksheet 2: family limit $57,383 + $5,270 per child, i.e. 1.25 x a $45,907 + $4,216 threshold',
     },
     mls: {
       url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates',

@@ -154,7 +154,7 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
 
         <Switch
           label="Spouse"
-          hint="Surcharge uses family thresholds"
+          hint="Family thresholds for the levy and surcharge"
           checked={inputs.hasSpouse}
           onChange={(v) => onChange({ hasSpouse: v })}
         />

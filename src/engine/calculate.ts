@@ -1,4 +1,4 @@
-import type { Bracket, FYData, TaxCategory } from '../data';
+import type { Bracket, FYData, MedicareRules, TaxCategory } from '../data';
 
 export type PayCycle = 'annual' | 'monthly' | 'fortnightly' | 'weekly' | 'daily' | 'hourly';
 
@@ -25,11 +25,11 @@ export interface CalculatorInputs {
   hasStudentLoan: boolean;
   /** appropriate private hospital cover held all year (MLS not payable) */
   privateHospitalCover: boolean;
-  /** spouse for MLS family threshold purposes */
+  /** spouse: family thresholds apply to the levy and the surcharge */
   hasSpouse: boolean;
-  /** combined spouse income for MLS purposes (tier selection uses family income) */
+  /** spouse's annual income, added to yours for both family tests */
   spouseIncome: number;
-  /** MLS dependent children */
+  /** dependent children: raise the family thresholds */
   dependants: number;
   medicareExemption: 'none' | 'half' | 'full';
 }
@@ -70,6 +70,8 @@ export interface CalculationResult {
   /** income tax after non-refundable offsets, floored at 0 */
   netIncomeTax: number;
   medicareLevy: number;
+  /** levy taken off by the family income threshold (spouse or dependants) */
+  medicareFamilyReduction: number;
   medicareSurcharge: number;
   mlsTierRate: number;
   studentLoanRepayment: number;
@@ -139,20 +141,53 @@ export function litoAmount(taxable: number, fy: FYData, category: TaxCategory): 
   return 0;
 }
 
+export interface MedicareFamily {
+  hasSpouse: boolean;
+  /** spouse's taxable income */
+  spouseIncome: number;
+  dependants: number;
+}
+
+/** s 7 Medicare Levy Act: nil to the lower threshold, then 10c in the dollar until 2% catches up */
+function singleLevy(taxable: number, m: MedicareRules): number {
+  if (taxable <= m.lowerSingle) return 0;
+  if (taxable <= m.upperSingle) return m.shadeInRate * (taxable - m.lowerSingle);
+  return m.rate * taxable;
+}
+
+/**
+ * s 8: nil while family income is at or below the family threshold, then a
+ * reduction of 2% of the threshold less 8% of the excess, gone at 1.25x the
+ * threshold. If the spouse also pays the levy, the reduction is shared in
+ * proportion to taxable income.
+ */
+function familyLevy(levy: number, taxable: number, m: MedicareRules, f: MedicareFamily): number {
+  const spouseIncome = f.hasSpouse ? Math.max(0, f.spouseIncome) : 0;
+  const familyIncome = taxable + spouseIncome;
+  const threshold = m.familyThreshold + m.familyPerChild * Math.max(0, f.dependants);
+  if (familyIncome <= threshold) return 0;
+  // the 8% taper is the shade-in rate less the levy rate
+  let reduction = m.rate * threshold - (m.shadeInRate - m.rate) * (familyIncome - threshold);
+  if (reduction <= 0) return levy;
+  if (singleLevy(spouseIncome, m) > 0) reduction *= taxable / familyIncome;
+  return Math.max(0, levy - reduction);
+}
+
 export function medicareLevyAmount(
   taxable: number,
   fy: FYData,
   category: TaxCategory,
   exemption: CalculatorInputs['medicareExemption'],
+  family?: MedicareFamily,
 ): number {
   // Foreign residents and WHMs are not entitled to Medicare and don't pay the levy
   if (category === 'foreign' || category === 'whm') return 0;
   if (exemption === 'full') return 0;
   const m = fy.medicare;
-  let levy: number;
-  if (taxable <= m.lowerSingle) levy = 0;
-  else if (taxable <= m.upperSingle) levy = m.shadeInRate * (taxable - m.lowerSingle);
-  else levy = m.rate * taxable;
+  let levy = singleLevy(taxable, m);
+  if (family && (family.hasSpouse || family.dependants > 0)) {
+    levy = familyLevy(levy, taxable, m, family);
+  }
   return exemption === 'half' ? levy / 2 : levy;
 }
 
@@ -269,11 +304,22 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
   const lito = litoAmount(taxableIncome, fy, inputs.category);
   const netIncomeTax = Math.max(0, incomeTax - lito);
 
+  const singleOnlyLevy = medicareLevyAmount(
+    taxableIncome,
+    fy,
+    inputs.category,
+    inputs.medicareExemption,
+  );
   const medicareLevy = medicareLevyAmount(
     taxableIncome,
     fy,
     inputs.category,
     inputs.medicareExemption,
+    {
+      hasSpouse: inputs.hasSpouse,
+      spouseIncome: inputs.spouseIncome,
+      dependants: inputs.dependants,
+    },
   );
 
   const mls = medicareSurchargeAmount({
@@ -309,6 +355,7 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
     lito,
     netIncomeTax,
     medicareLevy,
+    medicareFamilyReduction: singleOnlyLevy - medicareLevy,
     medicareSurcharge: mls.amount,
     mlsTierRate: mls.tierRate,
     studentLoanRepayment: stsl.amount,

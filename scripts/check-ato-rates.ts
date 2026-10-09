@@ -254,6 +254,34 @@ const PAGES: SourcePage[] = [
       },
     ],
   },
+  // The Medicare low-income thresholds lag a year: ours carry the previous
+  // year's figures forward until these pages move on.
+  {
+    url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners',
+    checks: [
+      {
+        name: 'Medicare levy single thresholds',
+        expect: `${dollars(fy.medicare.lowerSingle)} lower, ${dollars(fy.medicare.upperSingle)} upper`,
+        ok: (t) =>
+          t.includes(dollars(fy.medicare.lowerSingle)) &&
+          t.includes(dollars(fy.medicare.upperSingle)),
+        drift: `The single low-income thresholds changed. Update medicare in src/data/fy${CURRENT}.ts if they are the ${CURRENT} figures.`,
+      },
+    ],
+  },
+  {
+    url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income',
+    checks: [
+      {
+        name: 'Medicare levy family threshold',
+        expect: `${dollars(fy.medicare.familyThreshold)} plus ${dollars(fy.medicare.familyPerChild)} a child`,
+        ok: (t) =>
+          t.includes(dollars(fy.medicare.familyThreshold)) &&
+          t.includes(dollars(fy.medicare.familyPerChild)),
+        drift: `The family income threshold changed. Update medicare in src/data/fy${CURRENT}.ts if it is the ${CURRENT} figure.`,
+      },
+    ],
+  },
   // NSW transfer duty is the one stamp duty scale indexed every July
   ...(STAMP_DUTY.NSW && STAMP_DUTY.NSW.scale.kind === 'per100'
     ? [

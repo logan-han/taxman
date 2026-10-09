@@ -15,6 +15,13 @@ interface Props {
 export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
   const d = VIEW_DIVISOR[view];
   const src = (key: string) => fyData.sources[key];
+  const levySrc = (r.medicareFamilyReduction > 0 && src('medicareFamily')) || src('medicare');
+  const levyNotes = [
+    inputs.medicareExemption !== 'none' &&
+      `${inputs.medicareExemption === 'full' ? 'Full' : 'Half'} exemption applied`,
+    r.medicareFamilyReduction > 0 &&
+      `After ${money(r.medicareFamilyReduction)} low-income family reduction`,
+  ].filter(Boolean);
 
   return (
     <section className="card" aria-label="Where it goes">
@@ -70,12 +77,8 @@ export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
           <div className="tbl__row tbl__row--minus">
             <span>
               Medicare levy
-              <AtoLink href={src('medicare')?.url} checked={src('medicare')?.checked} />
-              {inputs.medicareExemption !== 'none' && (
-                <small>
-                  {inputs.medicareExemption === 'full' ? 'Full' : 'Half'} exemption applied
-                </small>
-              )}
+              <AtoLink href={levySrc?.url} checked={levySrc?.checked} />
+              {levyNotes.length > 0 && <small>{levyNotes.join(' · ')}</small>}
             </span>
             <span>−{money(r.medicareLevy / d)}</span>
             <span data-testid="medicare">−{money(r.medicareLevy)}</span>

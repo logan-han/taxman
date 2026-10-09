@@ -49,6 +49,8 @@ export const fy2026_27: FYData = {
     lowerSingle: 28_011,
     upperSingle: 35_013,
     shadeInRate: 0.1,
+    familyThreshold: 47_238,
+    familyPerChild: 4_338,
   },
 
   mls: {
@@ -169,6 +171,11 @@ export const fy2026_27: FYData = {
       url: 'https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld/coefficients-to-use-in-formulas-for-withholding-from-weekly-payments',
       checked: '2026-08-07',
       note: '2026-27 annual thresholds not yet published; Schedule 1 for payments from 1 July 2026 uses $28,011 / $35,013.',
+    },
+    medicareFamily: {
+      url: 'https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld/medicare-levy-adjustment',
+      checked: '2026-10-10',
+      note: 'Schedule 1 Medicare levy adjustment (published 17 June 2026): family threshold $47,238 + $4,338 per child.',
     },
     mls: {
       url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates',

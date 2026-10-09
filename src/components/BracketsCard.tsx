@@ -72,8 +72,8 @@ export function BracketsCard({ result: r, fyData, category }: Props) {
         {CATEGORY_NOTE[category]} for {fyData.fy}.
         {fyData.hasDerivedFigures &&
           ' Includes the legislated 15% rate that applied from 1 July 2026; the ATO is yet to publish its bracket table for this year.'}{' '}
-        The low income tax offset and the Medicare levy low-income reduction are applied
-        automatically where eligible.
+        The low income tax offset and the Medicare levy low-income reductions, single and family,
+        are applied automatically where eligible.
       </p>
     </section>
   );

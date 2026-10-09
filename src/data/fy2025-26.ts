@@ -43,6 +43,8 @@ export const fy2025_26: FYData = {
     lowerSingle: 28_011,
     upperSingle: 35_013,
     shadeInRate: 0.1,
+    familyThreshold: 47_238,
+    familyPerChild: 4_338,
   },
 
   mls: {
@@ -95,8 +97,13 @@ export const fy2025_26: FYData = {
     },
     medicare: {
       url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners',
-      checked: '2026-08-06',
+      checked: '2026-10-10',
       note: 'single lower $28,011, upper $35,013',
+    },
+    medicareFamily: {
+      url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income',
+      checked: '2026-10-10',
+      note: 'family threshold $47,238 + $4,338 per child (upper $59,047 + $5,423)',
     },
     mls: {
       url: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates',

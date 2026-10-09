@@ -35,6 +35,10 @@ export interface MedicareRules {
   upperSingle: number;
   /** shade-in rate applied to (taxable - lower) between the thresholds */
   shadeInRate: number;
+  /** family income threshold (s 8 Medicare Levy Act): no levy at/below it */
+  familyThreshold: number;
+  /** added to the family threshold for each dependent child */
+  familyPerChild: number;
 }
 
 export interface MlsTier {

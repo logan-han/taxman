@@ -72,6 +72,23 @@ describe('BreakdownCard', () => {
     expect(screen.getByText('Half exemption applied')).toBeInTheDocument();
   });
 
+  it('notes the family reduction and links its source', () => {
+    const { result } = renderFor({ salary: 50_000, hasSpouse: true });
+    expect(result.medicareFamilyReduction).toBeGreaterThan(0);
+    expect(
+      screen.getByText(
+        `After ${money(result.medicareFamilyReduction)} low-income family reduction`,
+      ),
+    ).toBeInTheDocument();
+    const link = screen.getByText('Medicare levy').querySelector('a');
+    expect(link).toHaveAttribute('href', fyData.sources.medicareFamily.url);
+  });
+
+  it('joins the exemption and family notes', () => {
+    renderFor({ salary: 50_000, hasSpouse: true, medicareExemption: 'half' });
+    expect(screen.getByText(/Half exemption applied · After \$\d+ low-income family/)).toBeTruthy();
+  });
+
   it('explains where super comes from', () => {
     renderFor({ salaryIncludesSuper: true });
     expect(screen.getByText(/Part of your package/)).toBeInTheDocument();
