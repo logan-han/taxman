@@ -205,7 +205,8 @@ const PAGES: SourcePage[] = [
       {
         name: `SG rate for ${CURRENT}`,
         expect: `1 July 2026 - 30 June 2027 row showing ${sgPercent}`,
-        ok: (t) => new RegExp(`1 July 2026 - 30 June 2027\\D+${sgPercent.replace('.', '\\.')}`).test(t),
+        ok: (t) =>
+          new RegExp(`1 July 2026 - 30 June 2027\\D+${sgPercent.replace('.', '\\.')}`).test(t),
         drift: `The SG percentage row for ${CURRENT} no longer shows ${sgPercent}.`,
       },
     ],
@@ -222,7 +223,8 @@ const PAGES: SourcePage[] = [
       {
         name: `MLS ${NEXT_FY} table appeared`,
         expect: 'not present yet',
-        ok: (t) => !t.includes(`rates for ${NEXT_FY}`) && !t.includes(`rates apply for the ${NEXT_FY}`),
+        ok: (t) =>
+          !t.includes(`rates for ${NEXT_FY}`) && !t.includes(`rates apply for the ${NEXT_FY}`),
         drift: `The ATO published ${NEXT_FY} MLS thresholds - add them to a new FY data file.`,
       },
     ],
@@ -234,7 +236,9 @@ const PAGES: SourcePage[] = [
         name: 'concessional cap',
         expect: `general concessional contributions cap is ${dollars(fy.superRules.concessionalCap)}`,
         ok: (t) =>
-          t.includes(`general concessional contributions cap is ${dollars(fy.superRules.concessionalCap)}`),
+          t.includes(
+            `general concessional contributions cap is ${dollars(fy.superRules.concessionalCap)}`,
+          ),
         drift: `The concessional cap no longer reads ${dollars(fy.superRules.concessionalCap)}.`,
       },
     ],
@@ -259,7 +263,14 @@ const PAGES: SourcePage[] = [
             {
               name: 'NSW transfer duty top threshold',
               expect: dollars(STAMP_DUTY.NSW.scale.brackets[5].over),
-              ok: (t: string) => t.includes(dollars(STAMP_DUTY.NSW!.scale.kind === 'per100' ? STAMP_DUTY.NSW!.scale.brackets[5].over : 0)),
+              ok: (t: string) =>
+                t.includes(
+                  dollars(
+                    STAMP_DUTY.NSW!.scale.kind === 'per100'
+                      ? STAMP_DUTY.NSW!.scale.brackets[5].over
+                      : 0,
+                  ),
+                ),
               drift:
                 'NSW has reindexed its transfer duty thresholds - update src/data/stampDuty.ts (and re-check the other bracket rows).',
             },
@@ -292,11 +303,15 @@ async function main() {
         continue;
       }
       if (fetched.via === 'wayback') {
-        viaNotes.push(`- ${page.url}: live fetch blocked, checked Wayback snapshot ${fetched.snapshotDate}`);
+        viaNotes.push(
+          `- ${page.url}: live fetch blocked, checked Wayback snapshot ${fetched.snapshotDate}`,
+        );
       }
       text = fetched.text;
     } catch (e) {
-      blockedLines.push(`- ${page.url} failed: ${e instanceof Error ? e.message.split('\n')[0] : e}`);
+      blockedLines.push(
+        `- ${page.url} failed: ${e instanceof Error ? e.message.split('\n')[0] : e}`,
+      );
       continue;
     }
 
@@ -304,7 +319,9 @@ async function main() {
       if (check.ok(text)) {
         okCount.n += 1;
       } else {
-        driftLines.push(`- **${check.name}** (expected: ${check.expect})\n  ${check.drift}\n  Source: ${page.url}`);
+        driftLines.push(
+          `- **${check.name}** (expected: ${check.expect})\n  ${check.drift}\n  Source: ${page.url}`,
+        );
       }
     }
   }
@@ -324,7 +341,10 @@ async function main() {
   }
   if (blockedLines.length) {
     lines.push('', '## Pages that could not be checked', '', ...blockedLines);
-    lines.push('', 'If this persists, the runner IPs are being blocked - check these pages manually.');
+    lines.push(
+      '',
+      'If this persists, the runner IPs are being blocked - check these pages manually.',
+    );
   }
 
   const report = lines.join('\n');

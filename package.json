@@ -15,8 +15,9 @@
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint src e2e scripts",
     "lint:fix": "eslint src e2e scripts --fix",
-    "format": "prettier --write 'src/**/*.{ts,tsx,scss}' 'e2e/**/*.ts'",
-    "format:check": "prettier --check 'src/**/*.{ts,tsx,scss}' 'e2e/**/*.ts'"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "format": "prettier --write 'src/**/*.{ts,tsx,scss}' 'e2e/**/*.ts' 'scripts/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.{ts,tsx,scss}' 'e2e/**/*.ts' 'scripts/**/*.ts'"
   },
   "dependencies": {
     "react": "^19.2.1",
