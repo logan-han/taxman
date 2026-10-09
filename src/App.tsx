@@ -30,6 +30,15 @@ import { money } from './engine/format';
 
 const DEFAULT_FY = currentFinancialYear();
 
+// tabs, bookmarks and history name the calculator; salary keeps index.html's title
+const BASE_TITLE = document.title;
+const MODE_TITLES: Record<Mode, string> = {
+  salary: BASE_TITLE,
+  compare: 'Contract vs permanent pay calculator – Taxman',
+  mortgage: 'Mortgage repayment and stamp duty calculator – Taxman',
+  novated: 'Novated lease true cost calculator – Taxman',
+};
+
 export default function App() {
   const [{ mode, inputs, compare, mortgage, novated, fy, view }, setState] = useState(() =>
     parseUrlState(window.location.search, DEFAULT_FY),
@@ -38,6 +47,10 @@ export default function App() {
   useEffect(() => {
     syncUrl({ mode, inputs, compare, mortgage, novated, fy, view }, DEFAULT_FY);
   }, [mode, inputs, compare, mortgage, novated, fy, view]);
+
+  useEffect(() => {
+    document.title = MODE_TITLES[mode];
+  }, [mode]);
 
   const fyData = FY_DATA[fy];
   const result = useMemo(() => calculate(inputs, fyData), [inputs, fyData]);

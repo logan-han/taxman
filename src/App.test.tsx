@@ -41,6 +41,20 @@ describe('App', () => {
     expect(window.location.search).toBe('?s=150000');
   });
 
+  it('names the calculator in the page title', () => {
+    const base = document.title;
+    render(<App />);
+    expect(document.title).toBe(base);
+    fireEvent.click(screen.getByRole('button', { name: 'Mortgage' }));
+    expect(document.title).toBe('Mortgage repayment and stamp duty calculator – Taxman');
+    fireEvent.click(screen.getByRole('button', { name: 'Novated lease' }));
+    expect(document.title).toMatch(/^Novated lease/);
+    fireEvent.click(screen.getByRole('button', { name: 'Contract vs permanent' }));
+    expect(document.title).toMatch(/^Contract vs permanent/);
+    fireEvent.click(screen.getByRole('button', { name: 'My salary' }));
+    expect(document.title).toBe(base);
+  });
+
   it("carries each mode's headline figure in the phone result bar", () => {
     render(<App />);
     const bar = () => screen.getByTestId('result-bar-value');
