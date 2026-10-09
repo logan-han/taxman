@@ -20,6 +20,8 @@ npm run build
 - jsdom has no `PointerEvent`; `vitest.setup.ts` shims it so `fireEvent.pointer*` keeps
   `clientX` and `pointerType`.
 - Pushing to `main` deploys to production (tax.han.life).
+- React is held on 19.2 (`~` ranges): 19.3 adds about 9 KB gzip (ViewTransition, Fragment refs)
+  that this app doesn't use, about 10% of the bundle.
 
 ## Layout
 
