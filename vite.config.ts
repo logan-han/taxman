@@ -9,10 +9,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
-        name: 'Taxman – Australian Pay Calculator',
+        name: 'Taxman – Australian Money Calculators',
         short_name: 'Taxman',
         description:
-          'Ad-free Australian pay calculator: income tax, Medicare levy, HELP/HECS, superannuation and take-home pay, with every figure sourced from the ATO.',
+          'Ad-free Australian calculators for take-home pay, tax, HELP/HECS and super, contract vs permanent, mortgages and novated leases, with every figure sourced. Runs in your browser.',
         theme_color: '#00375f',
         background_color: '#f6f8fa',
         display: 'standalone',

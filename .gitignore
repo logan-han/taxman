@@ -14,3 +14,6 @@ console-errors.log
 
 # local research notes, not for the public repo
 RESEARCH.md
+
+# agent tooling
+.claude/

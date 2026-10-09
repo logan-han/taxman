@@ -5,7 +5,8 @@
 Ad-free Australian money calculators at [tax.han.life](https://tax.han.life). Everything runs in
 your browser; nothing you type leaves the page.
 
-- **My salary** - take-home pay, income tax, Medicare levy and surcharge, HELP/HECS, super and
+- **My salary** - take-home pay, income tax, Medicare levy (with the single and family
+  low-income reductions) and surcharge, HELP/HECS, super, reportable fringe benefits and
   per-payslip PAYG withholding (ATO Schedule 1), for FY 2024-25 to 2026-27
 - **Contract vs permanent** - day/hourly rate vs salary, adjusted for unpaid leave and holidays
 - **Mortgage** - repayments, fixed/interest-only/split loans, extra repayments, rate and growth
@@ -21,7 +22,10 @@ your browser; nothing you type leaves the page.
 npm install
 npm run dev
 npm run test        # unit tests
-npm run test:e2e    # Playwright
+npm run test:e2e    # Playwright, against a production build on port 4180
+npm run lint
+npm run typecheck
+npm run format:check
 npm run build
 ```
 
@@ -31,10 +35,12 @@ counts; it is skipped on localhost.
 
 ## Data updates
 
-Adding a financial year = one new `src/data/fy*.ts` file. The **ATO Rates Watch** workflow checks
-the source pages weekly (plain fetch with a browser user agent; ato.gov.au blocks headless
-browsers) and opens an issue when anything drifts, including NSW's annually indexed stamp duty.
-It never writes data itself. Run locally: `npx vite-node scripts/check-ato-rates.ts`.
+Adding a financial year = one new `src/data/fy*.ts` file. The Medicare low-income thresholds are
+set in the following year's Budget, so a new year carries the previous figures forward until the
+ATO publishes them. The **ATO Rates Watch** workflow checks the source pages weekly (plain fetch
+with Chrome's request headers; ato.gov.au blocks headless browsers) and opens an issue when
+anything drifts, including the Medicare thresholds and NSW's annually indexed stamp duty. It never
+writes data itself. Run locally: `npx vite-node scripts/check-ato-rates.ts`.
 
 ## Deploy
 
