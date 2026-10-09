@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { LineChart } from './LineChart';
 
 const times = [2026, 2027, 2028, 2029, 2030];
@@ -55,7 +55,7 @@ describe('LineChart', () => {
     expect(screen.getByText('0 units')).toBeInTheDocument();
   });
 
-  it('shows a tooltip on hover and clears it on leave', () => {
+  it('shows a tooltip under the mouse and clears it on leave', () => {
     const { container } = render(
       <LineChart
         ariaLabel="Repayment split"
@@ -67,13 +67,35 @@ describe('LineChart', () => {
     );
     const svg = screen.getByRole('img', { name: 'Repayment split' });
 
-    fireEvent.mouseMove(svg, { clientX: 400 });
+    fireEvent.pointerMove(svg, { clientX: 400, pointerType: 'mouse' });
     expect(container.querySelector('.chart__tooltip')).not.toBeNull();
     expect(screen.getByText('Rate 6.00%')).toBeInTheDocument();
     // a crosshair and one marker per series
     expect(container.querySelectorAll('circle')).toHaveLength(2);
 
-    fireEvent.mouseLeave(svg);
+    fireEvent.pointerLeave(svg, { pointerType: 'mouse' });
+    expect(container.querySelector('.chart__tooltip')).toBeNull();
+  });
+
+  it('keeps a tapped readout after the finger lifts, until focus moves on', () => {
+    const { container } = render(
+      <LineChart ariaLabel="Repayment split" times={times} series={series} formatValue={fmt} />,
+    );
+    const svg = screen.getByRole('img', { name: 'Repayment split' });
+    fireEvent.pointerDown(svg, { clientX: 400, pointerType: 'touch' });
+    fireEvent.pointerLeave(svg, { pointerType: 'touch' });
+    expect(container.querySelector('.chart__tooltip')).not.toBeNull();
+    fireEvent.blur(svg);
+    expect(container.querySelector('.chart__tooltip')).toBeNull();
+  });
+
+  it('drops the readout when the browser takes a touch over to scroll', () => {
+    const { container } = render(
+      <LineChart ariaLabel="Repayment split" times={times} series={series} formatValue={fmt} />,
+    );
+    const svg = screen.getByRole('img', { name: 'Repayment split' });
+    fireEvent.pointerDown(svg, { clientX: 400, pointerType: 'touch' });
+    fireEvent.pointerCancel(svg, { pointerType: 'touch' });
     expect(container.querySelector('.chart__tooltip')).toBeNull();
   });
 
@@ -85,10 +107,70 @@ describe('LineChart', () => {
 
     // jsdom reports a zero-width box, so clientX 0 lands on the first point and
     // anything positive lands on the last one
-    fireEvent.mouseMove(svg, { clientX: 0 });
+    fireEvent.pointerMove(svg, { clientX: 0, pointerType: 'mouse' });
     expect(container.querySelector<HTMLElement>('.chart__tooltip')!.style.left).not.toBe('');
 
-    fireEvent.mouseMove(svg, { clientX: 400 });
+    fireEvent.pointerMove(svg, { clientX: 400, pointerType: 'mouse' });
     expect(container.querySelector<HTMLElement>('.chart__tooltip')!.style.right).not.toBe('');
+  });
+
+  it('steps through the years from the keyboard and announces each point', () => {
+    const { container } = render(
+      <LineChart ariaLabel="Repayment split" times={times} series={series} formatValue={fmt} />,
+    );
+    const svg = screen.getByRole('img', { name: 'Repayment split' });
+    expect(svg).toHaveAttribute('tabindex', '0');
+    expect(svg).toHaveAccessibleDescription('Arrow keys step through the years.');
+    const live = container.querySelector('[aria-live]')!;
+
+    fireEvent.focus(svg);
+    expect(live).toHaveTextContent('2026, Interest $500, Principal $100');
+    fireEvent.keyDown(svg, { key: 'ArrowRight' });
+    expect(live).toHaveTextContent('2027, Interest $400, Principal $200');
+    fireEvent.keyDown(svg, { key: 'End' });
+    expect(live).toHaveTextContent('2030, Interest $100, Principal $500');
+    fireEvent.keyDown(svg, { key: 'ArrowRight' });
+    expect(live).toHaveTextContent('2030');
+    fireEvent.keyDown(svg, { key: 'Home' });
+    expect(live).toHaveTextContent('2026');
+    fireEvent.keyDown(svg, { key: 'ArrowLeft' });
+    expect(live).toHaveTextContent('2026');
+    fireEvent.keyDown(svg, { key: 'Escape' });
+    expect(container.querySelector('.chart__tooltip')).toBeNull();
+  });
+
+  it('keeps mouse readouts out of the live region', () => {
+    const { container } = render(
+      <LineChart ariaLabel="Repayment split" times={times} series={series} formatValue={fmt} />,
+    );
+    fireEvent.pointerMove(screen.getByRole('img', { name: 'Repayment split' }), {
+      clientX: 400,
+      pointerType: 'mouse',
+    });
+    expect(container.querySelector('[aria-live]')).toBeEmptyDOMElement();
+  });
+
+  it('draws at the measured container width', () => {
+    const observers: (() => void)[] = [];
+    const RO = vi.fn(function (this: unknown, cb: () => void) {
+      observers.push(cb);
+      return { observe: vi.fn(), disconnect: vi.fn() };
+    });
+    vi.stubGlobal('ResizeObserver', RO);
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(340);
+    try {
+      render(
+        <LineChart ariaLabel="Repayment split" times={times} series={series} formatValue={fmt} />,
+      );
+      const svg = screen.getByRole('img', { name: 'Repayment split' });
+      expect(svg).toHaveAttribute('viewBox', '0 0 340 240');
+      width.mockReturnValue(200);
+      act(() => observers.forEach((cb) => cb()));
+      // never narrower than the minimum drawing width
+      expect(svg).toHaveAttribute('viewBox', '0 0 280 240');
+    } finally {
+      width.mockRestore();
+      vi.unstubAllGlobals();
+    }
   });
 });

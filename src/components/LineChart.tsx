@@ -1,9 +1,10 @@
-import { useId, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * Minimal SVG time-series chart: stacked areas or plain lines, year axis,
- * recessive grid, legend, and a crosshair tooltip (nearest point readout).
- * One y-axis only. Series colours are validated categorical tokens.
+ * recessive grid, legend, and a crosshair tooltip (nearest point readout)
+ * driven by mouse, touch or the arrow keys. One y-axis only. Series colours
+ * are validated categorical tokens.
  */
 
 export interface ChartSeries {
@@ -25,8 +26,12 @@ interface Props {
   ariaLabel: string;
 }
 
-const W = 720;
+/** drawing width before the container is measured (and in tests) */
+const DEFAULT_W = 720;
+const MIN_W = 280;
 const PAD = { top: 12, right: 12, bottom: 26, left: 56 };
+/** room each year label needs on the x axis */
+const YEAR_LABEL_PX = 56;
 
 function niceTicks(max: number): number[] {
   if (max <= 0) return [0];
@@ -47,14 +52,34 @@ export function LineChart({
   ariaLabel,
 }: Props) {
   const [hover, setHover] = useState<number | null>(null);
+  const [keyboard, setKeyboard] = useState(false);
+  const [W, setW] = useState(DEFAULT_W);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const clipId = useId();
+  const hintId = useId();
+  const ready = times.length >= 2;
 
-  if (times.length < 2) return null;
+  // Draw at the container's pixel width so text stays at its CSS size on phones
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      if (el.clientWidth > 0) setW(Math.max(MIN_W, Math.round(el.clientWidth)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ready]);
+
+  if (!ready) return null;
 
   const H = height;
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
+  const last = times.length - 1;
+  const span = times[last] - times[0];
 
   // build stacked value matrix
   const zeros: number[] = new Array(times.length).fill(0);
@@ -68,14 +93,14 @@ export function LineChart({
   }
 
   const yMax = Math.max(...stackedValues.flat(), 1) * 1.05;
-  const x = (t: number) =>
-    PAD.left + ((t - times[0]) / (times[times.length - 1] - times[0])) * plotW;
+  const x = (t: number) => PAD.left + ((t - times[0]) / span) * plotW;
   const y = (v: number) => PAD.top + plotH - (v / yMax) * plotH;
 
-  const yearStep = Math.ceil((times[times.length - 1] - times[0]) / 6);
+  const maxYearLabels = Math.max(2, Math.min(6, Math.floor(plotW / YEAR_LABEL_PX)));
+  const yearStep = Math.max(1, Math.ceil(span / maxYearLabels));
   const firstYear = Math.ceil(times[0]);
   const yearTicks: number[] = [];
-  for (let yr = firstYear; yr <= times[times.length - 1]; yr += yearStep) yearTicks.push(yr);
+  for (let yr = firstYear; yr <= times[last]; yr += yearStep) yearTicks.push(yr);
 
   const pathFor = (tops: number[]) =>
     tops
@@ -83,7 +108,7 @@ export function LineChart({
       .join('');
 
   const areaFor = (tops: number[], bases: number[]) =>
-    `${pathFor(tops)}L${x(times[times.length - 1]).toFixed(1)},${y(bases[bases.length - 1]).toFixed(1)}` +
+    `${pathFor(tops)}L${x(times[last]).toFixed(1)},${y(bases[bases.length - 1]).toFixed(1)}` +
     bases
       .map((_, i) => {
         const j = bases.length - 1 - i;
@@ -92,12 +117,12 @@ export function LineChart({
       .join('') +
     'Z';
 
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const pointAt = (clientX: number) => {
     const rect = svgRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const px = ((e.clientX - rect.left) / rect.width) * W;
+    const px = ((clientX - rect.left) / rect.width) * W;
     const frac = Math.min(1, Math.max(0, (px - PAD.left) / plotW));
-    const t = times[0] + frac * (times[times.length - 1] - times[0]);
+    const t = times[0] + frac * span;
     let idx = 0;
     let best = Infinity;
     for (let i = 0; i < times.length; i++) {
@@ -107,21 +132,66 @@ export function LineChart({
         idx = i;
       }
     }
+    setKeyboard(false);
     setHover(idx);
+  };
+
+  // arrows step a year (shift: one repayment), Home/End jump to the ends
+  const perYear = Math.max(1, Math.round(last / span));
+  const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
+    const from = hover ?? 0;
+    const step = e.shiftKey ? 1 : perYear;
+    const next: Record<string, number> = {
+      ArrowRight: Math.min(last, from + step),
+      ArrowLeft: Math.max(0, from - step),
+      Home: 0,
+      End: last,
+    };
+    if (e.key === 'Escape') {
+      setHover(null);
+    } else if (e.key in next) {
+      e.preventDefault();
+      setKeyboard(true);
+      setHover(next[e.key]);
+    }
   };
 
   const hoverX = hover !== null ? x(times[hover]) : 0;
   const tooltipLeft = hover !== null && hoverX > W * 0.62;
+  const readout =
+    hover === null
+      ? ''
+      : [
+          String(Math.floor(times[hover])),
+          ...series.map((s) => `${s.label} ${formatValue(s.values[hover])}`),
+          ...(tooltipExtras?.(hover) ?? []),
+        ].join(', ');
 
   return (
-    <div className="chart">
+    <div className="chart" ref={wrapRef}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         aria-label={ariaLabel}
-        onMouseMove={onMove}
-        onMouseLeave={() => setHover(null)}
+        aria-describedby={hintId}
+        tabIndex={0}
+        onPointerDown={(e) => pointAt(e.clientX)}
+        onPointerMove={(e) => pointAt(e.clientX)}
+        onPointerLeave={(e) => {
+          // a lifted finger also "leaves"; touch readouts stay until focus moves on
+          if (e.pointerType === 'mouse') setHover(null);
+        }}
+        // the browser took the touch over to scroll the page
+        onPointerCancel={() => setHover(null)}
+        onFocus={() => {
+          if (hover === null) {
+            setKeyboard(true);
+            setHover(0);
+          }
+        }}
+        onBlur={() => setHover(null)}
+        onKeyDown={onKeyDown}
       >
         <clipPath id={clipId}>
           <rect x={PAD.left} y={PAD.top} width={plotW} height={plotH} />
@@ -189,6 +259,7 @@ export function LineChart({
       {hover !== null && (
         <div
           className="chart__tooltip"
+          aria-hidden="true"
           style={
             tooltipLeft
               ? { right: `${100 - (hoverX / W) * 100}%` }
@@ -207,6 +278,12 @@ export function LineChart({
           ))}
         </div>
       )}
+      <span id={hintId} className="visually-hidden">
+        Arrow keys step through the years.
+      </span>
+      <div className="visually-hidden" aria-live="polite">
+        {keyboard ? readout : ''}
+      </div>
 
       <div className="chart__legend">
         {series.map((s) => (
