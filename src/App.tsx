@@ -177,8 +177,8 @@ export default function App() {
 
               <p className="caption disclaimer">
                 Estimates for the {fyData.fy} financial year, assuming a full-year single job with a
-                tax file number provided. Study loan and surcharge income here include salary and
-                sacrificed super only; fringe benefits and investment losses would raise them. The
+                tax file number provided. Study loan and surcharge income here count salary,
+                sacrificed super and any fringe benefits you enter, not investment losses. The
                 seniors and pensioners tax offset is not modelled. This is general information, not
                 financial advice. Sources:{' '}
                 <a href={fyData.sources.brackets.url} rel="noopener">

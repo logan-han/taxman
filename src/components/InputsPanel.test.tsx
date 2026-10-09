@@ -121,6 +121,14 @@ describe('InputsPanel', () => {
     expect(onChange).toHaveBeenCalledWith({ deductions: 1_500 });
   });
 
+  it('takes reportable fringe benefits from the income statement', () => {
+    const { onChange } = setup();
+    fireEvent.change(screen.getByLabelText(/Reportable fringe benefits/), {
+      target: { value: '9,434' },
+    });
+    expect(onChange).toHaveBeenCalledWith({ reportableFringeBenefits: 9_434 });
+  });
+
   it('resets everything on request', () => {
     const { onReset } = setup();
     fireEvent.click(screen.getByRole('button', { name: 'Reset everything' }));

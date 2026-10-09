@@ -184,6 +184,17 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
             onValueChange={(deductions) => onChange({ deductions })}
           />
         </Field>
+
+        <Field
+          label="Reportable fringe benefits (a year)"
+          helper="From your income statement. Not taxed, but it counts towards HELP repayments, the surcharge and Division 293"
+        >
+          <AmountInput
+            value={inputs.reportableFringeBenefits ?? 0}
+            placeholder="0"
+            onValueChange={(reportableFringeBenefits) => onChange({ reportableFringeBenefits })}
+          />
+        </Field>
       </div>
 
       <button type="button" className="inputs__reset" onClick={onReset}>

@@ -45,6 +45,15 @@ test.describe('taxman calculator', () => {
     await expect(page.getByTestId('take-home-annual')).toHaveText('$66,962');
   });
 
+  test('reportable fringe benefits raise the study loan but not the tax', async ({ page }) => {
+    await page.goto('/?sl=1');
+    await page.getByLabel(/Reportable fringe benefits/).fill('10,000');
+    await expect(page).toHaveURL(/rfb=10000/);
+    // repayment income 110,000: 15% over 69,528
+    await expect(page.getByTestId('stsl')).toHaveText('−$6,071');
+    await expect(page.getByTestId('income-tax')).toHaveText('−$20,520');
+  });
+
   test('typing a salary updates the URL for sharing', async ({ page }) => {
     await page.goto('/');
     await page.getByLabel('Pay amount').fill('150,000');

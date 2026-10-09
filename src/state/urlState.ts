@@ -180,8 +180,7 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
       salaryIncludesSuper: p.get('inc') === '1',
       salarySacrificeSuper: num(p.get('ss'), d.salarySacrificeSuper),
       deductions: num(p.get('ded'), d.deductions),
-      // engine-only input (set by the novated mode), never URL-driven here
-      reportableFringeBenefits: d.reportableFringeBenefits,
+      reportableFringeBenefits: num(p.get('rfb'), d.reportableFringeBenefits ?? 0),
       hasStudentLoan: p.get('sl') === '1',
       privateHospitalCover: p.get('phc') === '1',
       hasSpouse: p.get('sp') === '1',
@@ -305,6 +304,7 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
   if (i.salaryIncludesSuper) p.set('inc', '1');
   if (i.salarySacrificeSuper > 0) p.set('ss', String(i.salarySacrificeSuper));
   if (i.deductions > 0) p.set('ded', String(i.deductions));
+  if ((i.reportableFringeBenefits ?? 0) > 0) p.set('rfb', String(i.reportableFringeBenefits));
   if (i.hasStudentLoan) p.set('sl', '1');
   if (i.privateHospitalCover) p.set('phc', '1');
   if (i.hasSpouse) p.set('sp', '1');

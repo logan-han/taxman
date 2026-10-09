@@ -34,6 +34,7 @@ describe('URL state', () => {
         salaryIncludesSuper: true,
         salarySacrificeSuper: 5_000,
         deductions: 1_200,
+        reportableFringeBenefits: 9_434,
         hasStudentLoan: true,
         privateHospitalCover: true,
         hasSpouse: true,
