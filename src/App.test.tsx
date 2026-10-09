@@ -41,6 +41,26 @@ describe('App', () => {
     expect(window.location.search).toBe('?s=150000');
   });
 
+  it("carries each mode's headline figure in the phone result bar", () => {
+    render(<App />);
+    const bar = () => screen.getByTestId('result-bar-value');
+    const expected = calculate(DEFAULT_INPUTS, FY_DATA[currentFinancialYear()]);
+    expect(screen.getByText('Take-home a month')).toBeInTheDocument();
+    expect(bar()).toHaveTextContent(money(expected.takeHome / 12));
+    fireEvent.click(screen.getByRole('button', { name: 'Weekly' }));
+    expect(screen.getByText('Take-home a week')).toBeInTheDocument();
+    expect(bar()).toHaveTextContent(money(expected.takeHome / 52));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Contract vs permanent' }));
+    expect(screen.getByText(/pays more a year$/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mortgage' }));
+    expect(screen.getByText('Repayments a month')).toBeInTheDocument();
+    expect(bar()).toHaveTextContent(screen.getByTestId('mortgage-repayment').textContent!);
+    fireEvent.click(screen.getByRole('button', { name: 'Novated lease' }));
+    expect(screen.getByText('Implied interest rate')).toBeInTheDocument();
+    expect(bar()).toHaveTextContent(screen.getByTestId('novated-apr').textContent!);
+  });
+
   it('restores state from a shared URL', () => {
     url('/?s=87500&sl=1&fy=2025-26&v=weekly');
     render(<App />);

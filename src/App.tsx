@@ -23,7 +23,10 @@ import { PayslipCard } from './components/PayslipCard';
 import { CompareInputsPanel } from './components/CompareInputs';
 import { CompareResults } from './components/CompareResults';
 import { ToggleGroup } from './components/controls';
+import { ResultBar } from './components/ResultBar';
 import type { ViewPeriod } from './components/view';
+import { VIEW_DIVISOR, VIEW_PERIOD_LABEL } from './components/view';
+import { money } from './engine/format';
 
 const DEFAULT_FY = currentFinancialYear();
 
@@ -63,6 +66,30 @@ export default function App() {
       fy: DEFAULT_FY,
       view: DEFAULT_VIEW,
     }));
+
+  const headline =
+    mode === 'novated'
+      ? {
+          label: 'Implied interest rate',
+          value:
+            novatedResult.impliedAprPercent === null
+              ? 'n/a'
+              : `${novatedResult.impliedAprPercent.toFixed(2)}%`,
+        }
+      : mode === 'mortgage'
+        ? {
+            label: `Repayments ${{ monthly: 'a month', fortnightly: 'a fortnight', weekly: 'a week' }[mortgage.frequency]}`,
+            value: money(mortgageResult.initialRepayment),
+          }
+        : mode === 'compare'
+          ? {
+              label: `${comparison.deltaTakeHome >= 0 ? 'Contracting' : 'Permanent'} pays more a year`,
+              value: money(Math.abs(comparison.deltaTakeHome)),
+            }
+          : {
+              label: `Take-home ${VIEW_PERIOD_LABEL[view]}`,
+              value: money(result.takeHome / VIEW_DIVISOR[view]),
+            };
 
   return (
     <div className="page">
@@ -175,6 +202,7 @@ export default function App() {
           </div>
         )}
       </div>
+      <ResultBar key={mode} {...headline} />
     </div>
   );
 }

@@ -92,6 +92,22 @@ test.describe('taxman calculator', () => {
     await expect(pay).toHaveValue('15,900,000');
   });
 
+  test('on a phone a result bar carries the answer and jumps to it', async ({ page, isMobile }) => {
+    await page.goto('/');
+    const bar = page.locator('.result-bar');
+    if (!isMobile) {
+      await expect(bar).toBeHidden();
+      return;
+    }
+    await expect(bar).toBeVisible();
+    await expect(page.getByTestId('result-bar-value')).toHaveText('$6,457');
+    await page.getByLabel('Study loan').check();
+    await expect(page.getByTestId('result-bar-value')).toHaveText('$6,076');
+    await bar.click();
+    await expect(page.getByTestId('take-home')).toBeInViewport();
+    await expect(bar).toBeHidden();
+  });
+
   test('keyboard-only flow can operate the calculator', async ({ page }) => {
     await page.goto('/');
     const pay = page.getByLabel('Pay amount');
