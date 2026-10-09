@@ -229,23 +229,18 @@ export function superGuaranteeAmount(
 ): SuperResult {
   const r = fy.superRules;
   const rate = r.guaranteeRate;
-  const cashSalary = includesSuper ? annualPackageOrSalary / (1 + rate) : annualPackageOrSalary;
-  let sg = cashSalary * rate;
+  let sg = (includesSuper ? annualPackageOrSalary / (1 + rate) : annualPackageOrSalary) * rate;
   let capped = false;
 
-  if (r.maxContributionBaseAnnual !== undefined) {
-    const maxSg = r.maxContributionBaseAnnual * rate;
-    if (sg > maxSg) {
-      sg = maxSg;
-      capped = true;
-    }
-  } else if (r.maxContributionBaseQuarterly !== undefined) {
-    const maxSg = r.maxContributionBaseQuarterly * 4 * rate;
-    if (sg > maxSg) {
-      sg = maxSg;
-      capped = true;
-    }
+  const maxBase =
+    r.maxContributionBaseAnnual ??
+    (r.maxContributionBaseQuarterly !== undefined ? r.maxContributionBaseQuarterly * 4 : undefined);
+  if (maxBase !== undefined && sg > maxBase * rate) {
+    sg = maxBase * rate;
+    capped = true;
   }
+  // Above the cap a package holds only the capped SG; the rest is salary
+  const cashSalary = includesSuper ? annualPackageOrSalary - sg : annualPackageOrSalary;
   return { cashSalary, superGuarantee: sg, capped };
 }
 

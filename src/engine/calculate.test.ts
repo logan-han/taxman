@@ -221,6 +221,28 @@ describe('superannuation', () => {
     expect(r.superGuarantee).toBeCloseTo(62_500 * 4 * 0.12, 2);
   });
 
+  it('a package above the cap holds only the capped SG; the rest is salary', () => {
+    // $400,000 package: SG capped at $32,499.60, so $367,500.40 is cash, not $357,142.86
+    const r = superGuaranteeAmount(400_000, fy27, true);
+    expect(r.capped).toBe(true);
+    expect(r.superGuarantee).toBeCloseTo(32_499.6, 2);
+    expect(r.cashSalary).toBeCloseTo(367_500.4, 2);
+    expect(r.cashSalary + r.superGuarantee).toBeCloseTo(400_000, 2);
+    // FY2025-26: $250,000 annual base, $30,000 SG
+    const q = superGuaranteeAmount(300_000, fy26, true);
+    expect(q.cashSalary).toBeCloseTo(270_000, 2);
+  });
+
+  it('package split is continuous across the cap', () => {
+    const atCap = 270_830 * 1.12;
+    const below = superGuaranteeAmount(atCap - 1, fy27, true);
+    const above = superGuaranteeAmount(atCap + 1, fy27, true);
+    expect(below.capped).toBe(false);
+    expect(above.capped).toBe(true);
+    // $1 below the cap splits 1/1.12 to salary; every dollar above it is salary
+    expect(above.cashSalary - below.cashSalary).toBeCloseTo(1 + 1 / 1.12, 2);
+  });
+
   it('flags concessional cap breaches (FY2026-27 cap $32,500)', () => {
     const under = calculate({ ...DEFAULT_INPUTS, salarySacrificeSuper: 20_000 }, fy27);
     expect(under.overConcessionalCap).toBe(false);
