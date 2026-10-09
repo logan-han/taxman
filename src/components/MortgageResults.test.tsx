@@ -14,6 +14,31 @@ function setup(patch: Partial<MortgageInputs> = {}) {
 }
 
 describe('MortgageResults', () => {
+  it('keeps every forecast thumb on the year its label shows', () => {
+    // default long-term rate anchor (2039) sits before the long slider's usual 2041 start
+    setup();
+    for (const name of [
+      'Near term rates year',
+      'Long term rates year',
+      'Near term growth year',
+      'Long term growth year',
+    ]) {
+      const slider = screen.getByLabelText(name);
+      const value = Number(slider.getAttribute('value'));
+      expect(Number(slider.getAttribute('min'))).toBeLessThanOrEqual(value);
+      expect(Number(slider.getAttribute('max'))).toBeGreaterThanOrEqual(value);
+      expect(slider).toHaveValue(String(value));
+    }
+    expect(screen.getByLabelText('Long term rates year')).toHaveValue('2039');
+  });
+
+  it('stretches the percent slider for a forecast above its usual maximum', () => {
+    setup({ rateForecast: { ...defaultMortgage(2026).rateForecast, longPercent: 15 } });
+    const slider = screen.getByLabelText('Long term rates percent');
+    expect(slider).toHaveAttribute('max', '15');
+    expect(slider).toHaveValue('15');
+  });
+
   it('leads with the repayment, its period and the loan summary', () => {
     const { result } = setup();
     expect(screen.getByTestId('mortgage-repayment')).toHaveTextContent(

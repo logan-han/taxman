@@ -31,6 +31,8 @@ function ForecastSliders({
   onChange,
   noun,
 }: ForecastCardProps) {
+  // ranges stretch to cover the current value: a browser clamps an out-of-range
+  // value, which would park the thumb on a year the label and the maths don't use
   const slider = (
     label: string,
     yearKey: 'nearYear' | 'longYear',
@@ -46,8 +48,8 @@ function ForecastSliders({
         </span>
         <input
           type="range"
-          min={yearMin}
-          max={yearMax}
+          min={Math.min(yearMin, f[yearKey])}
+          max={Math.max(yearMax, f[yearKey])}
           step={1}
           value={f[yearKey]}
           aria-label={`${label} ${noun} year`}
@@ -61,7 +63,7 @@ function ForecastSliders({
         <input
           type="range"
           min={0}
-          max={maxPercent}
+          max={Math.max(maxPercent, f[pctKey])}
           step={0.1}
           value={f[pctKey]}
           aria-label={`${label} ${noun} percent`}
