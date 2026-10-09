@@ -227,6 +227,51 @@ describe('Medicare levy surcharge', () => {
   });
 });
 
+describe('Medicare levy surcharge: low-income spouse', () => {
+  it('a spouse earning under the levy threshold pays none, however high the family income', () => {
+    // family income 275,000 is over the 246,000 tier 2 family threshold
+    const low = calculate(
+      { ...DEFAULT_INPUTS, salary: 25_000, hasSpouse: true, spouseIncome: 250_000 },
+      fy27,
+    );
+    expect(low.medicareSurcharge).toBe(0);
+    // own income just over $28,011: the family tier applies to it
+    const over = calculate(
+      { ...DEFAULT_INPUTS, salary: 28_100, hasSpouse: true, spouseIncome: 250_000 },
+      fy27,
+    );
+    expect(over.mlsTierRate).toBe(0.0125);
+    expect(over.medicareSurcharge).toBeCloseTo(0.0125 * 28_100, 2);
+  });
+
+  it('counts sacrificed super and fringe benefits in own income for the test', () => {
+    const r = calculate(
+      {
+        ...DEFAULT_INPUTS,
+        salary: 27_000,
+        salarySacrificeSuper: 2_000,
+        hasSpouse: true,
+        spouseIncome: 250_000,
+      },
+      fy27,
+    );
+    // own MLS income 27,000 (25,000 taxable + 2,000 sacrificed) is under 28,011
+    expect(r.medicareSurcharge).toBe(0);
+    const withRfb = calculate(
+      {
+        ...DEFAULT_INPUTS,
+        salary: 27_000,
+        reportableFringeBenefits: 2_000,
+        hasSpouse: true,
+        spouseIncome: 250_000,
+      },
+      fy27,
+    );
+    // 27,000 + 2,000 = 29,000 is over it: surcharge on taxable + RFB
+    expect(withRfb.medicareSurcharge).toBeCloseTo(0.0125 * 29_000, 2);
+  });
+});
+
 describe('student loans (STSL)', () => {
   it('FY2026-27 $100,000: $4,571 (golden fixture)', () => {
     const { amount } = studentLoanRepayment(100_000, fy27);

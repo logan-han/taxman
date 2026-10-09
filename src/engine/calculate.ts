@@ -219,6 +219,11 @@ export function medicareSurchargeAmount(args: {
   if (category === 'foreign' || category === 'whm' || args.privateHospitalCover) {
     return { amount: 0, tierRate: 0, mlsIncome };
   }
+  // With a spouse, own income for MLS purposes at or under the levy's
+  // low-income threshold escapes the surcharge whatever the family earns
+  if (args.hasSpouse && taxable + reportableSuper + rfb <= fy.medicare.lowerSingle) {
+    return { amount: 0, tierRate: 0, mlsIncome };
+  }
   const isFamily = args.hasSpouse || args.dependants > 0;
   const extraChildren = Math.max(0, args.dependants - 1);
   const uplift = extraChildren * fy.mls.perChildAfterFirst;
