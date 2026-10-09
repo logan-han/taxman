@@ -76,7 +76,7 @@ describe('PayslipCard', () => {
 
   it('asks for the current year when a year has no published coefficients', () => {
     renderFor({}, FY_DATA['2024-25']);
-    expect(screen.getByText(/only published for the current year/)).toBeInTheDocument();
+    expect(screen.getByText(/modelled for the current year only/)).toBeInTheDocument();
     expect(screen.queryByTestId('withheld-weekly')).toBeNull();
   });
 });

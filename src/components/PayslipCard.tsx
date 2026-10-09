@@ -31,7 +31,7 @@ export function PayslipCard({ inputs, result: r, fyData }: Props) {
         <p className="caption" style={{ marginTop: 8 }}>
           {inputs.category === 'whm'
             ? 'Working holiday makers are taxed under a separate withholding table (Schedule 15), not modelled here. The annual figures above still apply.'
-            : 'Per-pay withholding coefficients are only published for the current year. Select 2026-27 to see payslip amounts.'}
+            : 'Payslip withholding is modelled for the current year only. Select 2026-27 to see per-pay amounts.'}
         </p>
       </section>
     );

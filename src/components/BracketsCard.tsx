@@ -1,5 +1,6 @@
 import type { FYData, TaxCategory } from '../data';
 import type { CalculationResult } from '../engine/calculate';
+import { bracketsFor } from '../engine/calculate';
 import { money, percent } from '../engine/format';
 
 interface Props {
@@ -16,22 +17,15 @@ const CATEGORY_NOTE: Record<TaxCategory, string> = {
 };
 
 export function BracketsCard({ result: r, fyData, category }: Props) {
-  const brackets =
-    category === 'foreign'
-      ? fyData.foreignBrackets
-      : category === 'whm'
-        ? fyData.whmBrackets
-        : fyData.residentBrackets;
-
-  const marginalRate = [...brackets].reverse().find((b) => r.taxableIncome > b.min)?.rate ?? 0;
+  const brackets = bracketsFor(category, fyData);
+  // the engine's bracketLines cover the bands income reaches, in order
+  const marginalRate = r.bracketLines.at(-1)?.rate ?? 0;
   const effectiveRate = r.taxableIncome > 0 ? r.totalTax / r.taxableIncome : 0;
 
   const rows = brackets.map((b, i) => {
     const next = brackets[i + 1];
-    const active = r.taxableIncome > b.min;
-    const slice = active
-      ? b.rate * (Math.min(r.taxableIncome, next ? next.min : Infinity) - b.min)
-      : 0;
+    const active = i < r.bracketLines.length;
+    const slice = r.bracketLines[i]?.amount ?? 0;
     const band = next
       ? b.min === 0
         ? `${money(0)} – ${money(next.min)}`
@@ -63,7 +57,7 @@ export function BracketsCard({ result: r, fyData, category }: Props) {
           >
             <span>{row.band}</span>
             <span>{row.rate}</span>
-            <span>{money(row.active ? row.slice : 0)}</span>
+            <span>{money(row.slice)}</span>
           </div>
         ))}
       </div>

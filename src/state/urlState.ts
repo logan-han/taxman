@@ -66,9 +66,7 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
   const view = p.get('v');
   const dc = DEFAULT_COMPARE;
 
-  const dm = defaultMortgage(
-    new Date().getMonth() >= 6 ? new Date().getFullYear() : new Date().getFullYear(),
-  );
+  const dm = defaultMortgage(new Date().getFullYear());
   const opt = (v: string | null, fallback: InterestOption): InterestOption =>
     INTEREST_OPTIONS.includes(v as InterestOption) ? (v as InterestOption) : fallback;
 

@@ -108,6 +108,12 @@ export function annualSalary(inputs: CalculatorInputs): number {
   }
 }
 
+export function bracketsFor(category: TaxCategory, fy: FYData): Bracket[] {
+  if (category === 'foreign') return fy.foreignBrackets;
+  if (category === 'whm') return fy.whmBrackets;
+  return fy.residentBrackets;
+}
+
 export function taxFromBrackets(taxable: number, brackets: Bracket[]): number {
   if (taxable <= 0) return 0;
   let b = brackets[0];
@@ -292,13 +298,7 @@ export function calculate(inputs: CalculatorInputs, fy: FYData): CalculationResu
   const reportableFringeBenefits = Math.max(0, inputs.reportableFringeBenefits ?? 0);
   const taxableIncome = Math.max(0, cashSalary - sacrifice - deductions);
 
-  const brackets =
-    inputs.category === 'foreign'
-      ? fy.foreignBrackets
-      : inputs.category === 'whm'
-        ? fy.whmBrackets
-        : fy.residentBrackets;
-
+  const brackets = bracketsFor(inputs.category, fy);
   const incomeTax = taxFromBrackets(taxableIncome, brackets);
   const bracketLines = bracketBreakdown(taxableIncome, brackets);
   const lito = litoAmount(taxableIncome, fy, inputs.category);
