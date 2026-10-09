@@ -298,10 +298,14 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
           )}
           {r.phaseRulesAreAnnouncedOnly && (
             <p className="note--warn">
-              Heads up: the EV phase-out (announced 5 May 2026) is not yet legislated. Treatment
-              shown follows the announcement;{' '}
+              Heads up: the EV phase-out (announced 5 May 2026, draft law out for comment in
+              September) is not yet legislated. Treatment shown follows the{' '}
               <a href={EV_PHASE_OUT.source.url} rel="noopener" target="_blank">
-                Treasury release
+                announcement
+              </a>{' '}
+              and the{' '}
+              <a href={EV_PHASE_OUT.draft.url} rel="noopener" target="_blank">
+                draft
               </a>
               .
             </p>

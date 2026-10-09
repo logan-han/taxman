@@ -102,6 +102,10 @@ describe('NovatedLeaseResults', () => {
     expect(result.treatment.kind).toBe('discounted');
     expect(screen.getByText(/only gets a 25% FBT discount/)).toBeInTheDocument();
     expect(screen.getByText(/not yet legislated/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'draft' })).toHaveAttribute(
+      'href',
+      'https://consult.treasury.gov.au/c2026-800622',
+    );
   });
 
   it('passes on the luxury vehicle adjustment above the car limit', () => {

@@ -79,8 +79,9 @@ export const MIN_RESIDUAL_SOURCE = {
  * The Electric Car Discount and its announced wind-back.
  *
  * Announced 5 May 2026 alongside the Treasury review's final report and booked
- * in Budget 2026-27; NOT yet legislated as at the checked date. Existing leases
- * keep the treatment that applied at commencement, for their term.
+ * in Budget 2026-27; draft legislation went out for comment in September 2026.
+ * NOT yet law as at the checked date. Existing leases keep the treatment that
+ * applied at commencement, for their term.
  */
 export const EV_PHASE_OUT = {
   legislated: false,
@@ -98,6 +99,11 @@ export const EV_PHASE_OUT = {
     url: 'https://ministers.treasury.gov.au/ministers/jim-chalmers-2022/media-releases/fairer-tax-treatment-encourage-affordable-evs',
     checked: '2026-08-10',
     note: 'Announcement stage; the $75,000 valuation basis is not yet defined in law.',
+  },
+  draft: {
+    url: 'https://consult.treasury.gov.au/c2026-800622',
+    checked: '2026-10-10',
+    note: 'Draft legislation, consulted on 10-28 September 2026: same dates and $75,000 cap, keyed to when the commitment to provide the car is made.',
   },
 } as const;
 
