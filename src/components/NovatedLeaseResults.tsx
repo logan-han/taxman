@@ -80,7 +80,8 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
           your {n.mortgageRatePercent.toFixed(1)}% mortgage/offset rate, so paying early costs the
           offset interest you would have earned.
         </p>
-        <div className="scen">
+        {/* scrolls sideways on narrow screens, so it takes focus for arrow-key scrolling */}
+        <div className="scen" tabIndex={0} role="region" aria-label="Four ways to pay, compared">
           <div className="scen__head">
             <span>Scenario</span>
             <span>A fortnight</span>

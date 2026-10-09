@@ -130,79 +130,81 @@ export default function App() {
           </div>
         </header>
 
-        <div className="mode-toggle">
-          <ToggleGroup
-            ariaLabel="Calculator mode"
-            options={[
-              { label: 'My salary', value: 'salary' as Mode },
-              { label: 'Contract vs permanent', value: 'compare' as Mode },
-              { label: 'Mortgage', value: 'mortgage' as Mode },
-              { label: 'Novated lease', value: 'novated' as Mode },
-            ]}
-            value={mode}
-            onChange={setMode}
-          />
-        </div>
+        <main className="frame__main">
+          <div className="mode-toggle">
+            <ToggleGroup
+              ariaLabel="Calculator mode"
+              options={[
+                { label: 'My salary', value: 'salary' as Mode },
+                { label: 'Contract vs permanent', value: 'compare' as Mode },
+                { label: 'Mortgage', value: 'mortgage' as Mode },
+                { label: 'Novated lease', value: 'novated' as Mode },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          </div>
 
-        {mode === 'novated' ? (
-          <div className="layout">
-            <NovatedInputsPanel n={novated} fy={fy} onChange={setNovated} onReset={reset} />
-            <div className="results">
-              <NovatedLeaseResults n={novated} result={novatedResult} fyData={fyData} />
+          {mode === 'novated' ? (
+            <div className="layout">
+              <NovatedInputsPanel n={novated} fy={fy} onChange={setNovated} onReset={reset} />
+              <div className="results">
+                <NovatedLeaseResults n={novated} result={novatedResult} fyData={fyData} />
+              </div>
             </div>
-          </div>
-        ) : mode === 'mortgage' ? (
-          <div className="layout">
-            <MortgageInputsPanel m={mortgage} onChange={setMortgage} onReset={reset} />
-            <div className="results">
-              <MortgageResults m={mortgage} result={mortgageResult} onChange={setMortgage} />
+          ) : mode === 'mortgage' ? (
+            <div className="layout">
+              <MortgageInputsPanel m={mortgage} onChange={setMortgage} onReset={reset} />
+              <div className="results">
+                <MortgageResults m={mortgage} result={mortgageResult} onChange={setMortgage} />
+              </div>
             </div>
-          </div>
-        ) : mode === 'compare' ? (
-          <div className="layout">
-            <CompareInputsPanel compare={compare} onChange={setCompare} onReset={reset} />
-            <div className="results">
-              <CompareResults compare={compare} result={comparison} fyData={fyData} />
+          ) : mode === 'compare' ? (
+            <div className="layout">
+              <CompareInputsPanel compare={compare} onChange={setCompare} onReset={reset} />
+              <div className="results">
+                <CompareResults compare={compare} result={comparison} fyData={fyData} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="layout">
-            <InputsPanel inputs={inputs} fy={fy} onChange={setInputs} onReset={reset} />
+          ) : (
+            <div className="layout">
+              <InputsPanel inputs={inputs} fy={fy} onChange={setInputs} onReset={reset} />
 
-            <div className="results">
-              <HeroCard result={result} view={view} onViewChange={setView} />
-              <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
-              <BracketsCard result={result} fyData={fyData} category={inputs.category} />
-              <PayslipCard inputs={inputs} result={result} fyData={fyData} />
+              <div className="results">
+                <HeroCard result={result} view={view} onViewChange={setView} />
+                <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
+                <BracketsCard result={result} fyData={fyData} category={inputs.category} />
+                <PayslipCard inputs={inputs} result={result} fyData={fyData} />
 
-              <p className="caption disclaimer">
-                Estimates for the {fyData.fy} financial year, assuming a full-year single job with a
-                tax file number provided. Study loan and surcharge income here count salary,
-                sacrificed super and any fringe benefits you enter, not investment losses. The
-                seniors and pensioners tax offset is not modelled. This is general information, not
-                financial advice. Sources:{' '}
-                <a href={fyData.sources.brackets.url} rel="noopener">
-                  tax rates
-                </a>
-                ,{' '}
-                <a href={fyData.sources.stsl.url} rel="noopener">
-                  study loan thresholds
-                </a>
-                ,{' '}
-                <a href={fyData.sources.super.url} rel="noopener">
-                  super guarantee
-                </a>
-                . Found a wrong number?{' '}
-                <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
-                  Open an issue
-                </a>
-                .
-              </p>
+                <p className="caption disclaimer">
+                  Estimates for the {fyData.fy} financial year, assuming a full-year single job with
+                  a tax file number provided. Study loan and surcharge income here count salary,
+                  sacrificed super and any fringe benefits you enter, not investment losses. The
+                  seniors and pensioners tax offset is not modelled. This is general information,
+                  not financial advice. Sources:{' '}
+                  <a href={fyData.sources.brackets.url} rel="noopener">
+                    tax rates
+                  </a>
+                  ,{' '}
+                  <a href={fyData.sources.stsl.url} rel="noopener">
+                    study loan thresholds
+                  </a>
+                  ,{' '}
+                  <a href={fyData.sources.super.url} rel="noopener">
+                    super guarantee
+                  </a>
+                  . Found a wrong number?{' '}
+                  <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
+                    Open an issue
+                  </a>
+                  .
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          <ResultBar key={mode} {...headline} />
+        </main>
       </div>
-      <ResultBar key={mode} {...headline} />
     </div>
   );
 }

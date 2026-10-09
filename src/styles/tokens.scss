@@ -73,6 +73,8 @@
   --pay-text-primary: #283e48;
   --pay-text-secondary: #526973;
   --pay-text-disabled: #bdbdbd;
+  // lightest text that still clears WCAG AA (4.5:1) on white
+  --pay-text-muted: #607a86;
 
   // Surfaces
   --pay-bg-main: #f6f8fa;
