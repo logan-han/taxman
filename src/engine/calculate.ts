@@ -114,6 +114,11 @@ export function bracketsFor(category: TaxCategory, fy: FYData): Bracket[] {
   return fy.residentBrackets;
 }
 
+/** resident categories get LITO, the Medicare levy and the surcharge */
+export function isResident(category: TaxCategory): boolean {
+  return category !== 'foreign' && category !== 'whm';
+}
+
 export function taxFromBrackets(taxable: number, brackets: Bracket[]): number {
   if (taxable <= 0) return 0;
   let b = brackets[0];
@@ -138,7 +143,7 @@ export function bracketBreakdown(taxable: number, brackets: Bracket[]): BracketL
 
 export function litoAmount(taxable: number, fy: FYData, category: TaxCategory): number {
   // Residents only (both scales withhold the same annual liability)
-  if (category === 'foreign' || category === 'whm') return 0;
+  if (!isResident(category)) return 0;
   const l = fy.lito;
   if (taxable <= l.firstTaperFrom) return l.max;
   if (taxable <= l.secondTaperFrom) return l.max - l.firstTaperRate * (taxable - l.firstTaperFrom);
@@ -187,7 +192,7 @@ export function medicareLevyAmount(
   family?: MedicareFamily,
 ): number {
   // Foreign residents and WHMs are not entitled to Medicare and don't pay the levy
-  if (category === 'foreign' || category === 'whm') return 0;
+  if (!isResident(category)) return 0;
   if (exemption === 'full') return 0;
   const m = fy.medicare;
   let levy = singleLevy(taxable, m);
@@ -216,7 +221,7 @@ export function medicareSurchargeAmount(args: {
   const { taxable, reportableSuper, fy, category } = args;
   const rfb = Math.max(0, args.reportableFringeBenefits ?? 0);
   const mlsIncome = taxable + reportableSuper + rfb + (args.hasSpouse ? args.spouseIncome : 0);
-  if (category === 'foreign' || category === 'whm' || args.privateHospitalCover) {
+  if (!isResident(category) || args.privateHospitalCover) {
     return { amount: 0, tierRate: 0, mlsIncome };
   }
   // With a spouse, own income for MLS purposes at or under the levy's

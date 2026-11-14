@@ -3,6 +3,7 @@ import { FY_DATA } from '../data';
 import {
   DEFAULT_INPUTS,
   calculate,
+  isResident,
   litoAmount,
   medicareLevyAmount,
   studentLoanRepayment,
@@ -53,6 +54,15 @@ describe('income tax brackets', () => {
   it('WHM: 15c to $45,000 then $6,750 base', () => {
     expect(taxFromBrackets(45_000, fy27.whmBrackets)).toBeCloseTo(6_750, 2);
     expect(taxFromBrackets(100_000, fy27.whmBrackets)).toBeCloseTo(6_750 + 0.3 * 55_000, 2);
+  });
+});
+
+describe('resident categories', () => {
+  it('residents with or without the tax-free threshold; not foreign residents or WHMs', () => {
+    expect(isResident('resident')).toBe(true);
+    expect(isResident('residentNoTFT')).toBe(true);
+    expect(isResident('foreign')).toBe(false);
+    expect(isResident('whm')).toBe(false);
   });
 });
 

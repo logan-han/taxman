@@ -1,5 +1,6 @@
 import type { FYData } from '../data';
 import type { CalculationResult, CalculatorInputs } from '../engine/calculate';
+import { isResident } from '../engine/calculate';
 import { money } from '../engine/format';
 import { AtoLink } from './controls';
 import type { ViewPeriod } from './view';
@@ -73,7 +74,7 @@ export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
           <span data-testid="income-tax">−{money(r.netIncomeTax)}</span>
         </div>
 
-        {inputs.category !== 'foreign' && inputs.category !== 'whm' && (
+        {isResident(inputs.category) && (
           <div className="tbl__row tbl__row--minus">
             <span>
               Medicare levy

@@ -1,5 +1,6 @@
 import type { FinancialYear, TaxCategory } from '../data';
 import type { CalculatorInputs, PayCycle } from '../engine/calculate';
+import { isResident } from '../engine/calculate';
 import { AmountInput, Field, Switch, ToggleGroup } from './controls';
 
 const CYCLE_OPTIONS: { label: string; value: PayCycle }[] = [
@@ -93,7 +94,7 @@ export function InputsPanel({ inputs, onChange, onReset }: Props) {
           checked={inputs.hasStudentLoan}
           onChange={(v) => onChange({ hasStudentLoan: v })}
         />
-        {(inputs.category === 'resident' || inputs.category === 'residentNoTFT') && (
+        {isResident(inputs.category) && (
           <>
             <Switch
               label="Medicare levy exemption"
