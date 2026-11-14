@@ -2,9 +2,15 @@ import type { FinancialYear, TaxCategory } from '../data';
 import { FINANCIAL_YEARS } from '../data';
 import type { CalculatorInputs, PayCycle } from '../engine/calculate';
 import { DEFAULT_INPUTS } from '../engine/calculate';
-import type { AuState, CompareInputs } from '../engine/compare';
+import type { CompareInputs } from '../engine/compare';
 import { AU_STATES, DEFAULT_COMPARE } from '../engine/compare';
-import type { InterestOption, MortgageInputs, RepaymentFrequency } from '../engine/mortgage';
+import type {
+  Forecast,
+  InterestOption,
+  LoanPortion,
+  MortgageInputs,
+  RepaymentFrequency,
+} from '../engine/mortgage';
 import { defaultMortgage } from '../engine/mortgage';
 import type { NovatedLeaseInputs } from '../engine/novatedLease';
 import { defaultNovated } from '../engine/novatedLease';
@@ -55,40 +61,64 @@ function num(v: string | null, fallback: number, max = 100_000_000): number {
   return Number.isFinite(n) && n >= 0 && n <= max ? n : fallback;
 }
 
+function oneOf<T extends string>(allowed: readonly T[], v: string | null, fallback: T): T {
+  return allowed.includes(v as T) ? (v as T) : fallback;
+}
+
+// forecast params: mrny, mrnp, mrly, mrlp (rates) and mgny, mgnp, mgly, mglp (growth)
+function parseForecast(p: URLSearchParams, prefix: 'mr' | 'mg', d: Forecast): Forecast {
+  return {
+    nearYear: num(p.get(`${prefix}ny`), d.nearYear, 2100),
+    nearPercent: num(p.get(`${prefix}np`), d.nearPercent, 25),
+    longYear: num(p.get(`${prefix}ly`), d.longYear, 2100),
+    longPercent: num(p.get(`${prefix}lp`), d.longPercent, 25),
+  };
+}
+
+function setForecast(p: URLSearchParams, prefix: 'mr' | 'mg', f: Forecast, d: Forecast): void {
+  if (f.nearYear !== d.nearYear) p.set(`${prefix}ny`, String(f.nearYear));
+  if (f.nearPercent !== d.nearPercent) p.set(`${prefix}np`, String(f.nearPercent));
+  if (f.longYear !== d.longYear) p.set(`${prefix}ly`, String(f.longYear));
+  if (f.longPercent !== d.longPercent) p.set(`${prefix}lp`, String(f.longPercent));
+}
+
+function toSearch(p: URLSearchParams): string {
+  const q = p.toString();
+  return q ? `?${q}` : '';
+}
+
 export function parseUrlState(search: string, defaultFy: FinancialYear): UrlState {
   const p = new URLSearchParams(search);
   const d = DEFAULT_INPUTS;
 
-  const cycle = p.get('c');
-  const cat = p.get('cat');
-  const fyParam = p.get('fy');
+  const modeParam = p.get('mode');
+  const nvt = p.get('nvt');
   const mex = p.get('mex');
-  const view = p.get('v');
   const dc = DEFAULT_COMPARE;
 
   const dm = defaultMortgage(new Date().getFullYear());
-  const opt = (v: string | null, fallback: InterestOption): InterestOption =>
-    INTEREST_OPTIONS.includes(v as InterestOption) ? (v as InterestOption) : fallback;
+  // loan portion params: ma1, mr1, mo1, mio1 and ma2, mr2, mo2, mio2
+  const portion = (n: 1 | 2, dp: LoanPortion): LoanPortion => ({
+    amount: num(p.get(`ma${n}`), dp.amount),
+    ratePercent: num(p.get(`mr${n}`), dp.ratePercent, 25),
+    option: oneOf(INTEREST_OPTIONS, p.get(`mo${n}`), dp.option),
+    interestOnlyYears: num(p.get(`mio${n}`), dp.interestOnlyYears, 15),
+  });
 
   const dn = defaultNovated(new Date());
 
   return {
     mode:
-      p.get('mode') === 'c'
+      modeParam === 'c'
         ? 'compare'
-        : p.get('mode') === 'm'
+        : modeParam === 'm'
           ? 'mortgage'
-          : p.get('mode') === 'n'
+          : modeParam === 'n'
             ? 'novated'
             : 'salary',
     novated: {
       // legacy URLs may carry nvt=phev: treat as petrol (exemption ended Apr 2025)
-      vehicleType:
-        p.get('nvt') === 'phev'
-          ? 'ice'
-          : VEHICLE_TYPES.includes(p.get('nvt') as VehicleType)
-            ? (p.get('nvt') as VehicleType)
-            : dn.vehicleType,
+      vehicleType: nvt === 'phev' ? 'ice' : oneOf(VEHICLE_TYPES, nvt, dn.vehicleType),
       carPrice: num(p.get('np'), dn.carPrice),
       fbtBaseValue: num(p.get('nbv'), dn.fbtBaseValue),
       amountFinanced: num(p.get('naf'), dn.amountFinanced),
@@ -107,9 +137,7 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
       mortgageRatePercent: num(p.get('nmr'), dn.mortgageRatePercent, 25),
     },
     mortgage: {
-      dutyState: AU_STATES.includes(p.get('mst') as AuState)
-        ? (p.get('mst') as AuState)
-        : dm.dutyState,
+      dutyState: oneOf(AU_STATES, p.get('mst'), dm.dutyState),
       existing: p.get('mex2') === '1',
       startYear: num(p.get('msy'), dm.startYear, 2100),
       startMonth: num(p.get('msm'), dm.startMonth, 12),
@@ -117,42 +145,17 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
       deposit: num(p.get('mdep'), dm.deposit),
       upfrontFees: num(p.get('mfee'), dm.upfrontFees),
       termYears: num(p.get('mtm'), dm.termYears, 40),
-      frequency: MORTGAGE_FREQS.includes(p.get('mfq') as RepaymentFrequency)
-        ? (p.get('mfq') as RepaymentFrequency)
-        : dm.frequency,
-      portions: [
-        {
-          amount: num(p.get('ma1'), dm.portions[0].amount),
-          ratePercent: num(p.get('mr1'), dm.portions[0].ratePercent, 25),
-          option: opt(p.get('mo1'), dm.portions[0].option),
-          interestOnlyYears: num(p.get('mio1'), dm.portions[0].interestOnlyYears, 15),
-        },
-        {
-          amount: num(p.get('ma2'), dm.portions[1].amount),
-          ratePercent: num(p.get('mr2'), dm.portions[1].ratePercent, 25),
-          option: opt(p.get('mo2'), dm.portions[1].option),
-          interestOnlyYears: num(p.get('mio2'), dm.portions[1].interestOnlyYears, 15),
-        },
-      ],
+      frequency: oneOf(MORTGAGE_FREQS, p.get('mfq'), dm.frequency),
+      portions: [portion(1, dm.portions[0]), portion(2, dm.portions[1])],
       split: p.get('msp') === '1',
       extraPerPeriod: num(p.get('mxr'), dm.extraPerPeriod),
-      rateForecast: {
-        nearYear: num(p.get('mrny'), dm.rateForecast.nearYear, 2100),
-        nearPercent: num(p.get('mrnp'), dm.rateForecast.nearPercent, 25),
-        longYear: num(p.get('mrly'), dm.rateForecast.longYear, 2100),
-        longPercent: num(p.get('mrlp'), dm.rateForecast.longPercent, 25),
-      },
-      growthForecast: {
-        nearYear: num(p.get('mgny'), dm.growthForecast.nearYear, 2100),
-        nearPercent: num(p.get('mgnp'), dm.growthForecast.nearPercent, 25),
-        longYear: num(p.get('mgly'), dm.growthForecast.longYear, 2100),
-        longPercent: num(p.get('mglp'), dm.growthForecast.longPercent, 25),
-      },
+      rateForecast: parseForecast(p, 'mr', dm.rateForecast),
+      growthForecast: parseForecast(p, 'mg', dm.growthForecast),
     },
-    view: VIEWS.includes(view as ViewPeriod) ? (view as ViewPeriod) : DEFAULT_VIEW,
-    fy: FINANCIAL_YEARS.includes(fyParam as FinancialYear) ? (fyParam as FinancialYear) : defaultFy,
+    view: oneOf(VIEWS, p.get('v'), DEFAULT_VIEW),
+    fy: oneOf(FINANCIAL_YEARS, p.get('fy'), defaultFy),
     compare: {
-      state: AU_STATES.includes(p.get('st') as AuState) ? (p.get('st') as AuState) : dc.state,
+      state: oneOf(AU_STATES, p.get('st'), dc.state),
       publicHolidayDays: num(p.get('ph'), dc.publicHolidayDays, 366),
       annualLeaveDays: num(p.get('al'), dc.annualLeaveDays, 366),
       sickDays: num(p.get('sd'), dc.sickDays, 366),
@@ -171,10 +174,10 @@ export function parseUrlState(search: string, defaultFy: FinancialYear): UrlStat
     },
     inputs: {
       salary: num(p.get('s'), d.salary),
-      payCycle: CYCLES.includes(cycle as PayCycle) ? (cycle as PayCycle) : d.payCycle,
+      payCycle: oneOf(CYCLES, p.get('c'), d.payCycle),
       hoursPerWeek: num(p.get('h'), d.hoursPerWeek, 168),
       daysPerWeek: num(p.get('d'), d.daysPerWeek, 7),
-      category: CATEGORIES.includes(cat as TaxCategory) ? (cat as TaxCategory) : d.category,
+      category: oneOf(CATEGORIES, p.get('cat'), d.category),
       salaryIncludesSuper: p.get('inc') === '1',
       salarySacrificeSuper: num(p.get('ss'), d.salarySacrificeSuper),
       deductions: num(p.get('ded'), d.deductions),
@@ -220,8 +223,7 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
     if (n.mortgageRatePercent !== dn.mortgageRatePercent)
       p.set('nmr', String(n.mortgageRatePercent));
     if (fy !== defaultFy) p.set('fy', fy);
-    const nq = p.toString();
-    return nq ? `?${nq}` : '';
+    return toSearch(p);
   }
 
   if (state.mode === 'mortgage') {
@@ -250,22 +252,9 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
         p.set('mio2', String(m.portions[1].interestOnlyYears));
     }
     if (m.extraPerPeriod > 0) p.set('mxr', String(m.extraPerPeriod));
-    const df = dm.rateForecast;
-    if (m.rateForecast.nearYear !== df.nearYear) p.set('mrny', String(m.rateForecast.nearYear));
-    if (m.rateForecast.nearPercent !== df.nearPercent)
-      p.set('mrnp', String(m.rateForecast.nearPercent));
-    if (m.rateForecast.longYear !== df.longYear) p.set('mrly', String(m.rateForecast.longYear));
-    if (m.rateForecast.longPercent !== df.longPercent)
-      p.set('mrlp', String(m.rateForecast.longPercent));
-    const dg = dm.growthForecast;
-    if (m.growthForecast.nearYear !== dg.nearYear) p.set('mgny', String(m.growthForecast.nearYear));
-    if (m.growthForecast.nearPercent !== dg.nearPercent)
-      p.set('mgnp', String(m.growthForecast.nearPercent));
-    if (m.growthForecast.longYear !== dg.longYear) p.set('mgly', String(m.growthForecast.longYear));
-    if (m.growthForecast.longPercent !== dg.longPercent)
-      p.set('mglp', String(m.growthForecast.longPercent));
-    const mq = p.toString();
-    return mq ? `?${mq}` : '';
+    setForecast(p, 'mr', m.rateForecast, dm.rateForecast);
+    setForecast(p, 'mg', m.growthForecast, dm.growthForecast);
+    return toSearch(p);
   }
 
   if (state.mode === 'compare') {
@@ -288,8 +277,7 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
     if (c.hasStudentLoan) p.set('csl', '1');
     if (c.privateHospitalCover) p.set('cphc', '1');
     if (fy !== defaultFy) p.set('fy', fy);
-    const cq = p.toString();
-    return cq ? `?${cq}` : '';
+    return toSearch(p);
   }
 
   if (state.view !== DEFAULT_VIEW) p.set('v', state.view);
@@ -310,8 +298,7 @@ export function serialiseUrlState(state: UrlState, defaultFy: FinancialYear): st
   if (i.dependants > 0) p.set('dep', String(i.dependants));
   if (i.medicareExemption !== 'none') p.set('mex', i.medicareExemption);
 
-  const q = p.toString();
-  return q ? `?${q}` : '';
+  return toSearch(p);
 }
 
 export function syncUrl(state: UrlState, defaultFy: FinancialYear): void {
