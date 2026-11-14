@@ -3,6 +3,7 @@ import { FY_DATA } from '../data';
 import {
   calculateNovatedLease,
   defaultNovated,
+  estimatedAmountFinanced,
   gradeRate,
   impliedAnnualRatePercent,
   luxuryVehicleAdjustmentPerYear,
@@ -85,6 +86,18 @@ describe('luxury vehicle adjustment (SG Fleet formula)', () => {
     // AF $75,782.32, RV $26,523.81, car limit $68,108 -> $2,137.85 over the term
     const perYear = luxuryVehicleAdjustmentPerYear(75_782.32, 26_523.81, 68_108, 1);
     expect(perYear).toBeCloseTo(2_137.85, 0);
+  });
+});
+
+describe('estimated amount financed (2026-27 GST credit cap $6,353)', () => {
+  it('takes a full 1/11 GST credit off the price under the cap', () => {
+    // $55,000 / 11 = $5,000
+    expect(estimatedAmountFinanced(55_000, 6_353)).toBe(50_000);
+  });
+
+  it('takes only the capped credit off a dearer car (fixture A)', () => {
+    // $90,417 / 11 = $8,219.73, capped at $6,353
+    expect(estimatedAmountFinanced(90_417, 6_353)).toBe(84_064);
   });
 });
 

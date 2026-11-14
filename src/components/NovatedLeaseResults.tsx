@@ -215,12 +215,8 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
                 Extra Medicare levy surcharge
                 <small>
                   RFBA pushes MLS income to tier{' '}
-                  {r.withLease.mlsTierRate === 0.01
-                    ? 1
-                    : r.withLease.mlsTierRate === 0.0125
-                      ? 2
-                      : 3}
-                  ; hospital cover would remove this
+                  {fyData.mls.tiers.findIndex((t) => t.rate === r.withLease.mlsTierRate)}; hospital
+                  cover would remove this
                 </small>
               </span>
               <span>+{money(r.mlsDeltaPerYear)}/yr</span>

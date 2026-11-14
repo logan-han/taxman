@@ -1,5 +1,6 @@
 import type { FinancialYear } from '../data';
 import type { NovatedLeaseInputs } from '../engine/novatedLease';
+import { estimatedAmountFinanced } from '../engine/novatedLease';
 import type { VehicleType } from '../data/fbt';
 import { CAR_THRESHOLDS, MIN_RESIDUAL_PERCENT } from '../data/fbt';
 import { money } from '../engine/format';
@@ -37,7 +38,7 @@ export function NovatedInputsPanel({ n, fy, onChange, onReset }: Props) {
   const financedEstimate =
     n.amountFinanced > 0
       ? n.amountFinanced
-      : Math.max(0, n.carPrice - Math.min(n.carPrice / 11, thresholds.maxGstCredit));
+      : estimatedAmountFinanced(n.carPrice, thresholds.maxGstCredit);
   const minResidualPercent = MIN_RESIDUAL_PERCENT[Math.min(5, Math.max(1, n.termYears))];
   const minResidual = Math.round(financedEstimate * minResidualPercent);
 

@@ -101,6 +101,11 @@ export function defaultNovated(today: Date): NovatedLeaseInputs {
   };
 }
 
+/** amount financed when the quote hides it: the price less its GST credit, which is capped */
+export function estimatedAmountFinanced(carPrice: number, maxGstCredit: number): number {
+  return Math.max(0, carPrice - Math.min(carPrice / 11, maxGstCredit));
+}
+
 /**
  * Solve the annual nominal rate implied by (financed, payment, term, residual)
  * via bisection on the fortnightly rate: the quote never states it.
@@ -257,7 +262,7 @@ export function calculateNovatedLease(inputs: NovatedLeaseInputs, fy: FYData): N
   const gstCreditIsCapped = uncappedGst > t.maxGstCredit;
   const financedIsEstimate = inputs.amountFinanced <= 0;
   const amountFinanced = financedIsEstimate
-    ? Math.max(0, carPrice - gstCreditOnCar)
+    ? estimatedAmountFinanced(carPrice, t.maxGstCredit)
     : inputs.amountFinanced;
 
   const residualExGst = inputs.residualIncludesGst ? inputs.residual / 1.1 : inputs.residual;

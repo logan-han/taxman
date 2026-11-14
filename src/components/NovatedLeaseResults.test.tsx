@@ -138,6 +138,23 @@ describe('NovatedLeaseResults', () => {
     expect(screen.getByText('Extra Division 293 tax')).toBeInTheDocument();
   });
 
+  it('names the surcharge tier the RFBA reaches', () => {
+    const tiers: [salary: number, tier: number][] = [
+      [100_000, 1],
+      [120_000, 2],
+      [245_000, 3],
+    ];
+    for (const [salary, tier] of tiers) {
+      const { unmount } = renderFor({ salary });
+      expect(
+        screen.getByText(
+          `RFBA pushes MLS income to tier ${tier}; hospital cover would remove this`,
+        ),
+      ).toBeInTheDocument();
+      unmount();
+    }
+  });
+
   it('omits the surcharge row when hospital cover removes it', () => {
     renderFor({ salary: 245_000, privateHospitalCover: true });
     expect(screen.queryByText('Extra Medicare levy surcharge')).toBeNull();
