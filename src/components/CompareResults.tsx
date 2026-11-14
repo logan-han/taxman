@@ -1,4 +1,4 @@
-import type { FYData } from '../data';
+import type { FYData, SourceKey } from '../data';
 import type { CompareInputs, CompareResult, SideResult } from '../engine/compare';
 import { money } from '../engine/format';
 import { AtoLink } from './controls';
@@ -39,7 +39,7 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
     contract: number;
     signed?: boolean;
     muted?: boolean;
-    sourceKey?: string;
+    sourceKey?: SourceKey;
   }[] = [
     {
       label: 'Package including super',
@@ -74,7 +74,7 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
             perm: -r.permanent.result.medicareSurcharge,
             contract: -r.contract.result.medicareSurcharge,
             signed: true,
-            sourceKey: 'mls',
+            sourceKey: 'mls' as const,
           },
         ]
       : []),
@@ -85,7 +85,7 @@ export function CompareResults({ compare: c, result: r, fyData }: Props) {
             perm: -r.permanent.result.studentLoanRepayment,
             contract: -r.contract.result.studentLoanRepayment,
             signed: true,
-            sourceKey: 'stsl',
+            sourceKey: 'stsl' as const,
           },
         ]
       : []),

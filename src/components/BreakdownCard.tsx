@@ -1,4 +1,4 @@
-import type { FYData } from '../data';
+import type { FYData, SourceKey } from '../data';
 import type { CalculationResult, CalculatorInputs } from '../engine/calculate';
 import { isResident } from '../engine/calculate';
 import { money } from '../engine/format';
@@ -15,7 +15,7 @@ interface Props {
 
 export function BreakdownCard({ inputs, result: r, fyData, view }: Props) {
   const d = VIEW_DIVISOR[view];
-  const src = (key: string) => fyData.sources[key];
+  const src = (key: SourceKey) => fyData.sources[key];
   const levySrc = (r.medicareFamilyReduction > 0 && src('medicareFamily')) || src('medicare');
   const levyNotes = [
     inputs.medicareExemption !== 'none' &&

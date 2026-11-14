@@ -112,6 +112,27 @@ export interface WithholdingRules {
   scale4ForeignRate: number;
 }
 
+/** the ATO page a figure came from and the date it was last checked */
+export interface Source {
+  url: string;
+  checked: string;
+  note?: string;
+}
+
+/** sources every FY file must carry; withholding only where Schedule 1 is captured */
+export type SourceKey =
+  | 'brackets'
+  | 'foreign'
+  | 'whm'
+  | 'lito'
+  | 'medicare'
+  | 'medicareFamily'
+  | 'mls'
+  | 'stsl'
+  | 'super'
+  | 'concessionalCap'
+  | 'div293';
+
 export interface FYData {
   fy: FinancialYear;
   /** first day of the FY, for labels */
@@ -129,5 +150,5 @@ export interface FYData {
   withholding?: WithholdingRules;
   /** true when any figure is derived from legislation rather than a published ATO table */
   hasDerivedFigures: boolean;
-  sources: Record<string, { url: string; checked: string; note?: string }>;
+  sources: Record<SourceKey, Source> & { withholding?: Source };
 }
