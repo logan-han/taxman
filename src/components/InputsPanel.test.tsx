@@ -8,7 +8,7 @@ function setup(patch: Partial<CalculatorInputs> = {}) {
   const onChange = vi.fn();
   const onReset = vi.fn();
   const inputs = { ...DEFAULT_INPUTS, ...patch };
-  render(<InputsPanel inputs={inputs} fy="2026-27" onChange={onChange} onReset={onReset} />);
+  render(<InputsPanel inputs={inputs} onChange={onChange} onReset={onReset} />);
   return { onChange, onReset };
 }
 
@@ -137,7 +137,7 @@ describe('InputsPanel', () => {
 
   it('does not submit the form', () => {
     const { container } = render(
-      <InputsPanel inputs={DEFAULT_INPUTS} fy="2026-27" onChange={() => {}} onReset={() => {}} />,
+      <InputsPanel inputs={DEFAULT_INPUTS} onChange={() => {}} onReset={() => {}} />,
     );
     const submit = new Event('submit', { bubbles: true, cancelable: true });
     container.querySelector('form')!.dispatchEvent(submit);

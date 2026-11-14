@@ -1,4 +1,4 @@
-import type { FinancialYear, TaxCategory } from '../data';
+import type { TaxCategory } from '../data';
 import type { CalculatorInputs, PayCycle } from '../engine/calculate';
 import { isResident } from '../engine/calculate';
 import { AmountInput, Field, Switch, ToggleGroup } from './controls';
@@ -21,7 +21,6 @@ const CATEGORY_OPTIONS: { label: string; value: TaxCategory }[] = [
 
 interface Props {
   inputs: CalculatorInputs;
-  fy: FinancialYear;
   onChange: (patch: Partial<CalculatorInputs>) => void;
   onReset: () => void;
 }

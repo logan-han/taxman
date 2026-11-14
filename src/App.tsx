@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { FY_DATA, FINANCIAL_YEARS, currentFinancialYear } from './data';
 import type { FinancialYear } from './data';
-import { calculate, DEFAULT_INPUTS } from './engine/calculate';
+import { calculate } from './engine/calculate';
 import type { CalculatorInputs } from './engine/calculate';
-import { compareContractPermanent, DEFAULT_COMPARE } from './engine/compare';
+import { compareContractPermanent } from './engine/compare';
 import type { CompareInputs } from './engine/compare';
-import { calculateMortgage, defaultMortgage } from './engine/mortgage';
+import { calculateMortgage } from './engine/mortgage';
 import type { MortgageInputs } from './engine/mortgage';
-import { calculateNovatedLease, defaultNovated } from './engine/novatedLease';
+import { calculateNovatedLease } from './engine/novatedLease';
 import type { NovatedLeaseInputs } from './engine/novatedLease';
 import { MortgageInputsPanel } from './components/MortgageInputs';
 import { MortgageResults } from './components/MortgageResults';
 import { NovatedInputsPanel } from './components/NovatedLeaseInputs';
 import { NovatedLeaseResults } from './components/NovatedLeaseResults';
-import { parseUrlState, syncUrl, DEFAULT_VIEW } from './state/urlState';
+import { parseUrlState, syncUrl } from './state/urlState';
 import type { Mode } from './state/urlState';
 import { InputsPanel } from './components/InputsPanel';
 import { HeroCard } from './components/HeroCard';
@@ -38,6 +39,13 @@ const MODE_TITLES: Record<Mode, string> = {
   mortgage: 'Mortgage repayment and stamp duty calculator – Taxman',
   novated: 'Novated lease true cost calculator – Taxman',
 };
+
+const MODE_OPTIONS: { label: string; value: Mode }[] = [
+  { label: 'My salary', value: 'salary' },
+  { label: 'Contract vs permanent', value: 'compare' },
+  { label: 'Mortgage', value: 'mortgage' },
+  { label: 'Novated lease', value: 'novated' },
+];
 
 export default function App() {
   const [{ mode, inputs, compare, mortgage, novated, fy, view }, setState] = useState(() =>
@@ -69,40 +77,80 @@ export default function App() {
   const setFy = (next: FinancialYear) => setState((s) => ({ ...s, fy: next }));
   const setView = (next: ViewPeriod) => setState((s) => ({ ...s, view: next }));
   const setMode = (next: Mode) => setState((s) => ({ ...s, mode: next }));
-  const reset = () =>
-    setState((s) => ({
-      mode: s.mode,
-      inputs: DEFAULT_INPUTS,
-      compare: DEFAULT_COMPARE,
-      mortgage: defaultMortgage(new Date().getFullYear()),
-      novated: defaultNovated(new Date()),
-      fy: DEFAULT_FY,
-      view: DEFAULT_VIEW,
-    }));
+  // every default is what an empty URL parses to; the mode stays as it is
+  const reset = () => setState((s) => ({ ...parseUrlState('', DEFAULT_FY), mode: s.mode }));
 
-  const headline =
-    mode === 'novated'
-      ? {
-          label: 'Implied interest rate',
-          value:
-            novatedResult.impliedAprPercent === null
-              ? 'n/a'
-              : `${novatedResult.impliedAprPercent.toFixed(2)}%`,
-        }
-      : mode === 'mortgage'
-        ? {
-            label: `Repayments ${VIEW_PERIOD_LABEL[mortgage.frequency]}`,
-            value: money(mortgageResult.initialRepayment),
-          }
-        : mode === 'compare'
-          ? {
-              label: `${comparison.deltaTakeHome >= 0 ? 'Contracting' : 'Permanent'} pays more a year`,
-              value: money(Math.abs(comparison.deltaTakeHome)),
-            }
-          : {
-              label: `Take-home ${VIEW_PERIOD_LABEL[view]}`,
-              value: money(result.takeHome / VIEW_DIVISOR[view]),
-            };
+  let headline: { label: string; value: string };
+  let panel: ReactNode;
+  let results: ReactNode;
+  switch (mode) {
+    case 'novated':
+      headline = {
+        label: 'Implied interest rate',
+        value:
+          novatedResult.impliedAprPercent === null
+            ? 'n/a'
+            : `${novatedResult.impliedAprPercent.toFixed(2)}%`,
+      };
+      panel = <NovatedInputsPanel n={novated} fy={fy} onChange={setNovated} onReset={reset} />;
+      results = <NovatedLeaseResults n={novated} result={novatedResult} fyData={fyData} />;
+      break;
+    case 'mortgage':
+      headline = {
+        label: `Repayments ${VIEW_PERIOD_LABEL[mortgage.frequency]}`,
+        value: money(mortgageResult.initialRepayment),
+      };
+      panel = <MortgageInputsPanel m={mortgage} onChange={setMortgage} onReset={reset} />;
+      results = <MortgageResults m={mortgage} result={mortgageResult} onChange={setMortgage} />;
+      break;
+    case 'compare':
+      headline = {
+        label: `${comparison.deltaTakeHome >= 0 ? 'Contracting' : 'Permanent'} pays more a year`,
+        value: money(Math.abs(comparison.deltaTakeHome)),
+      };
+      panel = <CompareInputsPanel compare={compare} onChange={setCompare} onReset={reset} />;
+      results = <CompareResults compare={compare} result={comparison} fyData={fyData} />;
+      break;
+    case 'salary':
+      headline = {
+        label: `Take-home ${VIEW_PERIOD_LABEL[view]}`,
+        value: money(result.takeHome / VIEW_DIVISOR[view]),
+      };
+      panel = <InputsPanel inputs={inputs} onChange={setInputs} onReset={reset} />;
+      results = (
+        <>
+          <HeroCard result={result} view={view} onViewChange={setView} />
+          <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
+          <BracketsCard result={result} fyData={fyData} category={inputs.category} />
+          <PayslipCard inputs={inputs} result={result} fyData={fyData} />
+
+          <p className="caption disclaimer">
+            Estimates for the {fyData.fy} financial year, assuming a full-year single job with a tax
+            file number provided. Study loan and surcharge income here count salary, sacrificed
+            super and any fringe benefits you enter, not investment losses. The seniors and
+            pensioners tax offset is not modelled. This is general information, not financial
+            advice. Sources:{' '}
+            <a href={fyData.sources.brackets.url} rel="noopener">
+              tax rates
+            </a>
+            ,{' '}
+            <a href={fyData.sources.stsl.url} rel="noopener">
+              study loan thresholds
+            </a>
+            ,{' '}
+            <a href={fyData.sources.super.url} rel="noopener">
+              super guarantee
+            </a>
+            . Found a wrong number?{' '}
+            <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
+              Open an issue
+            </a>
+            .
+          </p>
+        </>
+      );
+      break;
+  }
 
   return (
     <div className="page">
@@ -147,74 +195,16 @@ export default function App() {
           <div className="mode-toggle">
             <ToggleGroup
               ariaLabel="Calculator mode"
-              options={[
-                { label: 'My salary', value: 'salary' as Mode },
-                { label: 'Contract vs permanent', value: 'compare' as Mode },
-                { label: 'Mortgage', value: 'mortgage' as Mode },
-                { label: 'Novated lease', value: 'novated' as Mode },
-              ]}
+              options={MODE_OPTIONS}
               value={mode}
               onChange={setMode}
             />
           </div>
 
-          {mode === 'novated' ? (
-            <div className="layout">
-              <NovatedInputsPanel n={novated} fy={fy} onChange={setNovated} onReset={reset} />
-              <div className="results">
-                <NovatedLeaseResults n={novated} result={novatedResult} fyData={fyData} />
-              </div>
-            </div>
-          ) : mode === 'mortgage' ? (
-            <div className="layout">
-              <MortgageInputsPanel m={mortgage} onChange={setMortgage} onReset={reset} />
-              <div className="results">
-                <MortgageResults m={mortgage} result={mortgageResult} onChange={setMortgage} />
-              </div>
-            </div>
-          ) : mode === 'compare' ? (
-            <div className="layout">
-              <CompareInputsPanel compare={compare} onChange={setCompare} onReset={reset} />
-              <div className="results">
-                <CompareResults compare={compare} result={comparison} fyData={fyData} />
-              </div>
-            </div>
-          ) : (
-            <div className="layout">
-              <InputsPanel inputs={inputs} fy={fy} onChange={setInputs} onReset={reset} />
-
-              <div className="results">
-                <HeroCard result={result} view={view} onViewChange={setView} />
-                <BreakdownCard inputs={inputs} result={result} fyData={fyData} view={view} />
-                <BracketsCard result={result} fyData={fyData} category={inputs.category} />
-                <PayslipCard inputs={inputs} result={result} fyData={fyData} />
-
-                <p className="caption disclaimer">
-                  Estimates for the {fyData.fy} financial year, assuming a full-year single job with
-                  a tax file number provided. Study loan and surcharge income here count salary,
-                  sacrificed super and any fringe benefits you enter, not investment losses. The
-                  seniors and pensioners tax offset is not modelled. This is general information,
-                  not financial advice. Sources:{' '}
-                  <a href={fyData.sources.brackets.url} rel="noopener">
-                    tax rates
-                  </a>
-                  ,{' '}
-                  <a href={fyData.sources.stsl.url} rel="noopener">
-                    study loan thresholds
-                  </a>
-                  ,{' '}
-                  <a href={fyData.sources.super.url} rel="noopener">
-                    super guarantee
-                  </a>
-                  . Found a wrong number?{' '}
-                  <a href="https://github.com/logan-han/taxman/issues" rel="noopener">
-                    Open an issue
-                  </a>
-                  .
-                </p>
-              </div>
-            </div>
-          )}
+          <div className="layout">
+            {panel}
+            <div className="results">{results}</div>
+          </div>
           <ResultBar key={mode} {...headline} />
         </main>
       </div>
