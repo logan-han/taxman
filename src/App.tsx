@@ -91,7 +91,7 @@ export default function App() {
         }
       : mode === 'mortgage'
         ? {
-            label: `Repayments ${{ monthly: 'a month', fortnightly: 'a fortnight', weekly: 'a week' }[mortgage.frequency]}`,
+            label: `Repayments ${VIEW_PERIOD_LABEL[mortgage.frequency]}`,
             value: money(mortgageResult.initialRepayment),
           }
         : mode === 'compare'

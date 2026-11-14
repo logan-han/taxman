@@ -1,6 +1,7 @@
 import type { FYData } from '../data';
 import { CAR_THRESHOLDS_SOURCES, EV_PHASE_OUT, MIN_RESIDUAL_SOURCE } from '../data/fbt';
 import type { NovatedLeaseInputs, NovatedLeaseResult, RateGrade } from '../engine/novatedLease';
+import { FORTNIGHTS_PER_YEAR } from '../engine/novatedLease';
 import { money, moneyCents } from '../engine/format';
 import { AtoLink } from './controls';
 
@@ -23,6 +24,7 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
   const overCap = n.carPrice > EV_PHASE_OUT.phase2FullExemptionCap;
   const residualGap =
     r.minResidualAmount !== null ? n.residual - Math.round(r.minResidualAmount) : null;
+  const perFortnight = (perYear: number) => money(perYear / FORTNIGHTS_PER_YEAR);
 
   return (
     <>
@@ -239,18 +241,18 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
         <div className="kv">
           <div className="kv__row">
             <span>Take-home now</span>
-            <span>{money(r.baseline.takeHome / 26)} a fortnight</span>
+            <span>{perFortnight(r.baseline.takeHome)} a fortnight</span>
           </div>
           <div className="kv__row">
             <span>
               Take-home with the lease
               <small>
-                after {money(r.preTaxPerYear / 26)} pre-tax
-                {r.ecmPerYear > 0 ? ` and ${money(r.ecmPerYear / 26)} post-tax` : ''} deductions
+                after {perFortnight(r.preTaxPerYear)} pre-tax
+                {r.ecmPerYear > 0 ? ` and ${perFortnight(r.ecmPerYear)} post-tax` : ''} deductions
               </small>
             </span>
             <span>
-              {money((r.baseline.takeHome - r.takeHomeDropPerYear - r.ecmPerYear) / 26)} a fortnight
+              {perFortnight(r.baseline.takeHome - r.takeHomeDropPerYear - r.ecmPerYear)} a fortnight
             </span>
           </div>
           <div className="kv__row kv__row--strong">
@@ -262,7 +264,7 @@ export function NovatedLeaseResults({ n, result: r, fyData }: Props) {
               </small>
             </span>
             <span data-testid="novated-outofpocket">
-              {moneyCents((r.takeHomeDropPerYear + r.ecmPerYear) / 26)} a fortnight
+              {moneyCents((r.takeHomeDropPerYear + r.ecmPerYear) / FORTNIGHTS_PER_YEAR)} a fortnight
             </span>
           </div>
         </div>

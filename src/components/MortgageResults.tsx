@@ -2,6 +2,7 @@ import type { Forecast, MortgageInputs, MortgageResult } from '../engine/mortgag
 import { PERIODS_PER_YEAR } from '../engine/mortgage';
 import { money } from '../engine/format';
 import { LineChart } from './LineChart';
+import { PERIOD_NOUN, VIEW_PERIOD_LABEL } from './view';
 
 const kFmt = (v: number) =>
   v >= 1_000_000
@@ -104,12 +105,7 @@ interface Props {
 }
 
 export function MortgageResults({ m, result: r, onChange }: Props) {
-  const perLabel =
-    m.frequency === 'monthly'
-      ? 'a month'
-      : m.frequency === 'fortnightly'
-        ? 'a fortnight'
-        : 'a week';
+  const perLabel = VIEW_PERIOD_LABEL[m.frequency];
   const endYear = m.startYear + m.termYears;
   const times = r.points.map((p) => p.t);
   const ppy = PERIODS_PER_YEAR[m.frequency];
@@ -169,8 +165,8 @@ export function MortgageResults({ m, result: r, onChange }: Props) {
       <section className="card" aria-label="Repayments over time">
         <span className="overline">Repayments over the loan</span>
         <p className="caption" style={{ margin: '4px 0 8px' }}>
-          Principal and interest per {m.frequency.replace('ly', '')} payment; the top edge is the
-          total repayment. Interest dominates early, principal late.
+          Principal and interest per {PERIOD_NOUN[m.frequency]} payment; the top edge is the total
+          repayment. Interest dominates early, principal late.
         </p>
         <LineChart
           ariaLabel="Repayment split over the life of the loan"

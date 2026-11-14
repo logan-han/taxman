@@ -4,6 +4,7 @@ import type { InterestOption, MortgageInputs, RepaymentFrequency } from '../engi
 import { STAMP_DUTY, stampDutyFor } from '../data/stampDuty';
 import { money } from '../engine/format';
 import { AmountInput, Field, Switch, formatAmount } from './controls';
+import { PERIOD_NOUN } from './view';
 
 const OPTION_LABELS: Record<InterestOption, string> = {
   variable: 'Variable',
@@ -324,7 +325,7 @@ export function MortgageInputsPanel({ m, onChange, onReset }: Props) {
       <div className="inputs__divider" />
 
       <Field
-        label={`Extra repayment per ${m.frequency === 'monthly' ? 'month' : m.frequency === 'fortnightly' ? 'fortnight' : 'week'}`}
+        label={`Extra repayment per ${PERIOD_NOUN[m.frequency]}`}
         helper="On top of the required repayment"
       >
         <AmountInput

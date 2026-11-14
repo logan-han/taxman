@@ -21,6 +21,12 @@ export const VIEW_PERIOD_LABEL: Record<ViewPeriod, string> = {
   annually: 'a year',
 };
 
+export const PERIOD_NOUN: Record<Exclude<ViewPeriod, 'annually'>, string> = {
+  weekly: 'week',
+  fortnightly: 'fortnight',
+  monthly: 'month',
+};
+
 export const VIEW_COLUMN_LABEL: Record<ViewPeriod, string> = {
   weekly: 'Weekly',
   fortnightly: 'Fortnightly',
